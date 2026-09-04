@@ -1648,7 +1648,8 @@ function App() {
     online: online,
     isMobile: isMobile,
     currentUser: currentUser,
-    onLogout: logout
+    onLogout: logout,
+    shopName: shopName
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: isMobile ? "16px 14px 24px" : "24px 32px 48px"
@@ -3287,7 +3288,8 @@ function TopBar({
   online,
   isMobile,
   currentUser,
-  onLogout
+  onLogout,
+  shopName
 }) {
   const date = new Date().toLocaleDateString("vi-VN", {
     weekday: "long",
