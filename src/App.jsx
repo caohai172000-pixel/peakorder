@@ -262,25 +262,31 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Trả về thông tin nhân viên khớp PIN đó, đồng thời gắn session Auth
 // thật vào `sb` để RLS nhận đúng shop_id từ giờ trở đi.
 async function loginWithPin(shopId, pin) {
-  const { data, error } = await sb.functions.invoke("verify-pin", {
-    body: { shop_id: shopId, pin }
+  // 1) Đăng nhập ẩn danh trước — tạo 1 phiên Auth THẬT, dùng tính năng
+  // lõi của Supabase (không phải Edge Function tự deploy).
+  const { error: authError } = await sb.auth.signInAnonymously();
+  if (authError) {
+    throw new Error("Không tạo được phiên đăng nhập: " + authError.message);
+  }
+
+  // 2) Gọi hàm Database để kiểm tra PIN + gắn phiên này vào đúng
+  // nhân viên/chi nhánh tương ứng.
+  const { data, error } = await sb.rpc("verify_and_link_pin", {
+    p_shop_id: shopId,
+    p_pin: pin
   });
 
   if (error) {
-    throw new Error(error.message || "Đăng nhập thất bại");
+    await sb.auth.signOut();
+    throw new Error("Sai mã quán hoặc PIN");
   }
-  if (data && data.error) {
-    throw new Error(data.error);
-  }
-  await sb.auth.setSession({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token
-  });
+
+  const row = Array.isArray(data) ? data[0] : data;
   return {
-    id: data.staff_name,
-    name: data.staff_name,
-    role: data.role,
-    branch: data.branch || null
+    id: row.staff_name,
+    name: row.staff_name,
+    role: row.role,
+    branch: row.branch_name || null
   };
 }
 const productToDb = p => ({
@@ -2092,11 +2098,12 @@ function AdminPanel() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const callAdmin = async (action, shop_id) => {
-    const { data, error } = await sb.functions.invoke("admin-panel", {
-      body: { password, action, shop_id }
+    const { data, error } = await sb.rpc("admin_action", {
+      p_password: password,
+      p_action: action,
+      p_shop_id: shop_id || null
     });
-    if (error) throw new Error(error.message || "Có lỗi xảy ra");
-    if (data && data.error) throw new Error(data.error);
+    if (error) throw new Error(error.message || "Sai mật khẩu quản trị hoặc có lỗi xảy ra");
     return data;
   };
   const login = async () => {
@@ -2104,7 +2111,7 @@ function AdminPanel() {
     setBusy(true);
     try {
       const data = await callAdmin("list");
-      setShops(data.shops || []);
+      setShops(data || []);
       setAuthed(true);
     } catch (e) {
       setErr(e.message);
@@ -2118,7 +2125,7 @@ function AdminPanel() {
     try {
       await callAdmin(action, shop_id);
       const data = await callAdmin("list");
-      setShops(data.shops || []);
+      setShops(data || []);
     } catch (e) {
       setErr(e.message);
     } finally {
