@@ -254,8 +254,8 @@ function slugify(text) {
 // ---- kết nối Supabase (thay cho localStorage) ----
 // ⚠️ THAY 2 DÒNG DƯỚI bằng Project URL + anon/publishable key của
 // project "peakorder" MỚI (Project Settings → API), không dùng key cũ này.
-const SUPABASE_URL = "https://jugetkbltjvorljzpcoe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_vLmboLFnh2c7Jx1Ec26ZNQ_Q-mPIg2n";
+const SUPABASE_URL = "https://ubbpdpzswveoptgohnwi.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViYnBkcHpzd3Zlb3B0Z29obndpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0MzcxNTgsImV4cCI6MjEwNDAxMzE1OH0.kEHrK4iacDgbcg2Kj944t1M4Ybvz-jfn-06Dm7QJUgU";
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Đăng nhập THẬT qua Edge Function verify-pin, thay vì so PIN ở client.
