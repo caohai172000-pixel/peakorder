@@ -250,6 +250,16 @@ function slugify(text) {
   return (text || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // bỏ dấu tiếng Việt
   .replace(/đ/gi, "d").toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
+// Mã quán ngẫu nhiên, không phụ thuộc tên quán (tránh trùng/đoán được).
+// Bỏ các ký tự dễ nhầm lẫn khi đọc/chép tay: 0/O, 1/I/L.
+function generateShopCode(length = 6) {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
 
 // ---- kết nối Supabase (thay cho localStorage) ----
 // ⚠️ THAY 2 DÒNG DƯỚI bằng Project URL + anon/publishable key của
@@ -1727,6 +1737,7 @@ function ShopGate({
     width: "100%",
     boxSizing: "border-box"
   };
+  const [createdCode, setCreatedCode] = useState(""); // mã quán vừa tạo, chờ xác nhận đã lưu
   const createShop = async () => {
     setErr("");
     if (!name.trim()) return setErr("Nhập tên quán");
@@ -1734,11 +1745,10 @@ function ShopGate({
     if (!/^[0-9]{4,8}$/.test(pin.trim())) return setErr("PIN quản lý nên gồm 4-8 chữ số");
     setBusy(true);
     try {
-      const base = slugify(name) || "quan";
       let candidate = "";
       let ok = false;
-      for (let i = 0; i < 6 && !ok; i++) {
-        candidate = i === 0 ? base : `${base}-${uid().slice(0, 4)}`;
+      for (let i = 0; i < 8 && !ok; i++) {
+        candidate = generateShopCode(6);
         const {
           data
         } = await sb.from("shops").select("id").eq("id", candidate).maybeSingle();
@@ -1766,7 +1776,7 @@ function ShopGate({
         shop_id: candidate
       });
       if (staffErr) throw staffErr;
-      onActivate(candidate);
+      setCreatedCode(candidate); // không activate ngay — chờ người dùng xác nhận đã lưu mã
     } catch (e) {
       console.error(e);
       setErr("Có lỗi khi tạo quán, thử lại sau.");
@@ -1843,7 +1853,7 @@ function ShopGate({
       fontSize: 14,
       fontWeight: 600
     }
-  }, "Tôi đã có quán — nhập mã quán")), screen === "create" && /*#__PURE__*/React.createElement("div", {
+  }, "Tôi đã có quán — nhập mã quán")), screen === "create" && !createdCode && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: 10,
@@ -1942,7 +1952,67 @@ function ShopGate({
       fontSize: 12.5,
       padding: "4px 0"
     }
-  }, "← Quay lại"))));
+  }, "← Quay lại"))), createdCode && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 14,
+      background: CARD,
+      border: `1px solid ${LINE}`,
+      borderRadius: 14,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: INK
+    }
+  }, "Tạo quán thành công!"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: MUTED,
+      lineHeight: 1.5
+    }
+  }, "Đây là mã quán của bạn — cần dùng mã này để đăng nhập lại sau này. Hãy lưu lại (chụp màn hình hoặc copy) trước khi tiếp tục, vì hệ thống không thể khôi phục nếu bạn làm mất."), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      background: SAGE_BG,
+      border: `1px dashed ${SAGE_DARK}`,
+      borderRadius: 10,
+      padding: "16px 14px",
+      fontSize: 22,
+      fontWeight: 700,
+      letterSpacing: 3,
+      textAlign: "center",
+      color: SAGE_DARK
+    }
+  }, createdCode), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      const url = `${window.location.origin}${window.location.pathname}?shop=${createdCode}`;
+      navigator.clipboard.writeText(url);
+      setErr("");
+    },
+    style: {
+      background: CARD,
+      border: `1px solid ${LINE}`,
+      borderRadius: 10,
+      padding: "12px 16px",
+      color: INK,
+      fontSize: 13.5,
+      fontWeight: 600
+    }
+  }, "📋 Copy đường dẫn vào quán"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onActivate(createdCode),
+    style: {
+      background: JADE_GRADIENT,
+      border: "none",
+      borderRadius: 10,
+      padding: "13px 20px",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700
+    }
+  }, "Tôi đã lưu mã — Vào quán")));
 }
 function DarkShell({
   children,
