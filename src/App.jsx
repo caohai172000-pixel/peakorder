@@ -265,9 +265,7 @@ async function loginWithPin(shopId, pin) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-pin`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+      "Content-Type": "text/plain"
     },
     body: JSON.stringify({ shop_id: shopId, pin })
   });
@@ -2096,9 +2094,7 @@ function AdminPanel() {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-panel`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
+        "Content-Type": "text/plain"
       },
       body: JSON.stringify({
         password,
