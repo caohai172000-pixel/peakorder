@@ -250,16 +250,6 @@ function slugify(text) {
   return (text || "").toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // bỏ dấu tiếng Việt
   .replace(/đ/gi, "d").toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
-// Mã quán ngẫu nhiên, không phụ thuộc tên quán (tránh trùng/đoán được).
-// Bỏ các ký tự dễ nhầm lẫn khi đọc/chép tay: 0/O, 1/I/L.
-function generateShopCode(length = 6) {
-  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < length; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
 
 // ---- kết nối Supabase (thay cho localStorage) ----
 // ⚠️ THAY 2 DÒNG DƯỚI bằng Project URL + anon/publishable key của
@@ -1310,14 +1300,20 @@ function App() {
   const [branch, setBranch] = useState(SEED_BRANCHES[0]);
   const [tab, setTab] = useState("pos");
   const [loaded, setLoaded] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState(null); // pending | active | suspended | rejected | not_found
   const [saveErr, setSaveErr] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const initialUrlParams = useMemo(() => new URLSearchParams(window.location.search), []);
-  const [shopId, setShopId] = useState(initialUrlParams.get("shop") || "");
+  const initialPathShop = useMemo(() => {
+    const seg = window.location.pathname.split("/").filter(Boolean)[0];
+    return seg ? decodeURIComponent(seg) : "";
+  }, []);
+  const [shopId, setShopId] = useState(initialPathShop || initialUrlParams.get("shop") || "");
   const activateShop = id => {
     setShopId(id);
     const url = new URL(window.location.href);
-    url.searchParams.set("shop", id);
+    url.pathname = "/" + encodeURIComponent(id);
+    url.searchParams.delete("shop"); // dọn link kiểu cũ (?shop=...) nếu có
     window.history.replaceState({}, "", url);
   };
   const [appMode, setAppMode] = useState(initialUrlParams.get("mode") === "order" ? "order" : "start");
@@ -1337,11 +1333,12 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes] = await Promise.all([sb.from("shops").select("name").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes] = await Promise.all([sb.from("shops").select("name,status").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
+        setApprovalStatus(shopRes.data ? shopRes.data.status : "not_found");
         let prodRows = p.data || [];
         let branchRows = b.data || [];
         let staffRows = s.data || [];
@@ -1551,10 +1548,18 @@ function App() {
     setCurrentUser(null);
     setAppMode("start");
   };
+  if (shopId === "admin") {
+    return /*#__PURE__*/React.createElement(AdminPanel, null);
+  }
   if (!shopId) {
     return /*#__PURE__*/React.createElement(ShopGate, {
       isMobile: isMobile,
       onActivate: activateShop
+    });
+  }
+  if (loaded && approvalStatus && approvalStatus !== "active") {
+    return /*#__PURE__*/React.createElement(ShopBlockedScreen, {
+      status: approvalStatus
     });
   }
   if (!currentUser) {
@@ -1724,6 +1729,8 @@ function ShopGate({
 }) {
   const [screen, setScreen] = useState("start"); // start | create | find
   const [name, setName] = useState("");
+  const [repName, setRepName] = useState("");
+  const [cccd, setCccd] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
   const [findCode, setFindCode] = useState("");
@@ -1741,14 +1748,17 @@ function ShopGate({
   const createShop = async () => {
     setErr("");
     if (!name.trim()) return setErr("Nhập tên quán");
+    if (!repName.trim()) return setErr("Nhập tên người đại diện");
+    if (!/^[0-9]{9,12}$/.test(cccd.trim())) return setErr("Số CCCD gồm 9-12 chữ số");
     if (!phone.trim()) return setErr("Nhập số điện thoại");
     if (!/^[0-9]{4,8}$/.test(pin.trim())) return setErr("PIN quản lý nên gồm 4-8 chữ số");
     setBusy(true);
     try {
       let candidate = "";
       let ok = false;
-      for (let i = 0; i < 8 && !ok; i++) {
-        candidate = generateShopCode(6);
+      const base = slugify(name) || "quan";
+      for (let i = 0; i < 30 && !ok; i++) {
+        candidate = i === 0 ? base : `${base}-${i + 1}`;
         const {
           data
         } = await sb.from("shops").select("id").eq("id", candidate).maybeSingle();
@@ -1760,8 +1770,10 @@ function ShopGate({
       } = await sb.from("shops").insert({
         id: candidate,
         name: name.trim(),
+        representative_name: repName.trim(),
+        national_id: cccd.trim(),
         phone: phone.trim(),
-        status: "active",
+        status: "pending",
         plan: "trial"
       });
       if (shopErr) throw shopErr;
@@ -1868,6 +1880,17 @@ function ShopGate({
     onChange: e => setName(e.target.value),
     style: inputStyle
   }), /*#__PURE__*/React.createElement("input", {
+    placeholder: "Tên người đại diện",
+    value: repName,
+    onChange: e => setRepName(e.target.value),
+    style: inputStyle
+  }), /*#__PURE__*/React.createElement("input", {
+    placeholder: "Số CCCD người đại diện",
+    value: cccd,
+    inputMode: "numeric",
+    onChange: e => setCccd(e.target.value.replace(/[^0-9]/g, "")),
+    style: inputStyle
+  }), /*#__PURE__*/React.createElement("input", {
     placeholder: "Số điện thoại chủ quán",
     value: phone,
     onChange: e => setPhone(e.target.value),
@@ -1967,28 +1990,28 @@ function ShopGate({
       fontWeight: 700,
       color: INK
     }
-  }, "Tạo quán thành công!"), /*#__PURE__*/React.createElement("div", {
+  }, "Đăng ký thành công!"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: MUTED,
       lineHeight: 1.5
     }
-  }, "Đây là mã quán của bạn — cần dùng mã này để đăng nhập lại sau này. Hãy lưu lại (chụp màn hình hoặc copy) trước khi tiếp tục, vì hệ thống không thể khôi phục nếu bạn làm mất."), /*#__PURE__*/React.createElement("div", {
+  }, "Quán của bạn đang chờ duyệt trước khi hoạt động. Trong lúc chờ, hãy lưu lại đường dẫn riêng của quán (bookmark hoặc copy) để lần sau vào thẳng."), /*#__PURE__*/React.createElement("div", {
     className: "mono",
     style: {
       background: SAGE_BG,
       border: `1px dashed ${SAGE_DARK}`,
       borderRadius: 10,
       padding: "16px 14px",
-      fontSize: 22,
+      fontSize: 15,
       fontWeight: 700,
-      letterSpacing: 3,
+      wordBreak: "break-all",
       textAlign: "center",
       color: SAGE_DARK
     }
-  }, createdCode), /*#__PURE__*/React.createElement("button", {
+  }, `${window.location.origin}/${createdCode}`), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
-      const url = `${window.location.origin}${window.location.pathname}?shop=${createdCode}`;
+      const url = `${window.location.origin}/${createdCode}`;
       navigator.clipboard.writeText(url);
       setErr("");
     },
@@ -2012,7 +2035,294 @@ function ShopGate({
       fontSize: 14,
       fontWeight: 700
     }
-  }, "Tôi đã lưu mã — Vào quán")));
+  }, "Tôi đã lưu — Tiếp tục")));
+}
+function ShopBlockedScreen({
+  status
+}) {
+  const messages = {
+    pending: ["⏳", "Quán đang chờ duyệt", "Quán của bạn đã đăng ký thành công và đang chờ quản trị viên xét duyệt. Vui lòng quay lại sau."],
+    suspended: ["🔒", "Quán đã bị tạm khóa", "Liên hệ quản trị viên hệ thống để biết thêm chi tiết."],
+    rejected: ["✕", "Yêu cầu đăng ký bị từ chối", "Quán này chưa được chấp thuận hoạt động trên hệ thống."],
+    not_found: ["?", "Không tìm thấy quán", "Không có quán nào ứng với đường dẫn này. Kiểm tra lại đường dẫn hoặc mã quán."]
+  };
+  const [icon, title, desc] = messages[status] || messages.not_found;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#FAF6EE",
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 380,
+      textAlign: "center",
+      background: "#fff",
+      border: "1px solid #D8CBB8",
+      borderRadius: 16,
+      padding: "32px 24px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 36,
+      marginBottom: 10
+    }
+  }, icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: "#241C15",
+      marginBottom: 8
+    }
+  }, title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "#8A7A6B",
+      lineHeight: 1.6
+    }
+  }, desc)));
+}
+function AdminPanel() {
+  const [password, setPassword] = useState("");
+  const [authed, setAuthed] = useState(false);
+  const [shops, setShops] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const callAdmin = async (action, shop_id) => {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-panel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_KEY
+      },
+      body: JSON.stringify({
+        password,
+        action,
+        shop_id
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Có lỗi xảy ra");
+    return data;
+  };
+  const login = async () => {
+    setErr("");
+    setBusy(true);
+    try {
+      const data = await callAdmin("list");
+      setShops(data.shops || []);
+      setAuthed(true);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const doAction = async (action, shop_id) => {
+    setBusy(true);
+    setErr("");
+    try {
+      await callAdmin(action, shop_id);
+      const data = await callAdmin("list");
+      setShops(data.shops || []);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const statusLabel = {
+    pending: "⏳ Chờ duyệt",
+    active: "✓ Đang hoạt động",
+    suspended: "🔒 Đã khóa",
+    rejected: "✕ Đã từ chối"
+  };
+  if (!authed) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#FAF6EE",
+        padding: 20
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        maxWidth: 340,
+        width: "100%",
+        display: "grid",
+        gap: 12,
+        background: "#fff",
+        border: "1px solid #D8CBB8",
+        borderRadius: 14,
+        padding: 22
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 16,
+        fontWeight: 700,
+        color: "#241C15"
+      }
+    }, "Quản trị hệ thống"), /*#__PURE__*/React.createElement("input", {
+      type: "password",
+      placeholder: "Mật khẩu quản trị",
+      value: password,
+      onChange: e => setPassword(e.target.value),
+      onKeyDown: e => e.key === "Enter" && login(),
+      style: {
+        padding: "12px 14px",
+        borderRadius: 10,
+        border: "1px solid #D8CBB8",
+        fontSize: 14
+      }
+    }), err && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: "#C1432A",
+        fontSize: 12.5
+      }
+    }, err), /*#__PURE__*/React.createElement("button", {
+      onClick: login,
+      disabled: busy || !password,
+      style: {
+        background: "#C1432A",
+        border: "none",
+        borderRadius: 10,
+        padding: "13px 20px",
+        color: "#fff",
+        fontSize: 14,
+        fontWeight: 700,
+        opacity: busy ? 0.7 : 1
+      }
+    }, busy ? "Đang kiểm tra..." : "Đăng nhập")));
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#FAF6EE",
+      padding: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#241C15",
+      marginBottom: 4
+    }
+  }, "Duyệt quán đăng ký"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#8A7A6B",
+      marginBottom: 18
+    }
+  }, shops.length, " quán"), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#C1432A",
+      fontSize: 12.5,
+      marginBottom: 12
+    }
+  }, err), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10
+    }
+  }, shops.map(s => /*#__PURE__*/React.createElement("div", {
+    key: s.id,
+    style: {
+      background: "#fff",
+      border: "1px solid #D8CBB8",
+      borderRadius: 12,
+      padding: 16,
+      display: "grid",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: "#241C15",
+      fontSize: 14.5
+    }
+  }, s.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#8A7A6B"
+    }
+  }, statusLabel[s.status] || s.status)), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      fontSize: 12,
+      color: "#8A7A6B"
+    }
+  }, "Mã: ", s.id), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#3A2818"
+    }
+  }, "Người đại diện: ", s.representative_name || "—", " · CCCD: ", s.national_id || "—", " · SĐT: ", s.phone || "—"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 6,
+      flexWrap: "wrap"
+    }
+  }, s.status === "pending" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    disabled: busy,
+    onClick: () => doAction("approve", s.id),
+    style: {
+      background: "#1F6E52",
+      border: "none",
+      borderRadius: 8,
+      padding: "8px 14px",
+      color: "#fff",
+      fontSize: 12.5,
+      fontWeight: 600
+    }
+  }, "Duyệt"), /*#__PURE__*/React.createElement("button", {
+    disabled: busy,
+    onClick: () => doAction("reject", s.id),
+    style: {
+      background: "#fff",
+      border: "1px solid #D8CBB8",
+      borderRadius: 8,
+      padding: "8px 14px",
+      color: "#241C15",
+      fontSize: 12.5,
+      fontWeight: 600
+    }
+  }, "Từ chối")), s.status === "active" && /*#__PURE__*/React.createElement("button", {
+    disabled: busy,
+    onClick: () => doAction("suspend", s.id),
+    style: {
+      background: "#fff",
+      border: "1px solid #D8CBB8",
+      borderRadius: 8,
+      padding: "8px 14px",
+      color: "#241C15",
+      fontSize: 12.5,
+      fontWeight: 600
+    }
+  }, "Khóa quán"), (s.status === "suspended" || s.status === "rejected") && /*#__PURE__*/React.createElement("button", {
+    disabled: busy,
+    onClick: () => doAction("reactivate", s.id),
+    style: {
+      background: "#1F6E52",
+      border: "none",
+      borderRadius: 8,
+      padding: "8px 14px",
+      color: "#fff",
+      fontSize: 12.5,
+      fontWeight: 600
+    }
+  }, "Mở lại"))))));
 }
 function DarkShell({
   children,
