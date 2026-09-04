@@ -266,7 +266,8 @@ async function loginWithPin(shopId, pin) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      apikey: SUPABASE_KEY
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
     },
     body: JSON.stringify({ shop_id: shopId, pin })
   });
@@ -2096,7 +2097,8 @@ function AdminPanel() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: SUPABASE_KEY
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
       },
       body: JSON.stringify({
         password,
