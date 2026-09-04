@@ -262,15 +262,16 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Trả về thông tin nhân viên khớp PIN đó, đồng thời gắn session Auth
 // thật vào `sb` để RLS nhận đúng shop_id từ giờ trở đi.
 async function loginWithPin(shopId, pin) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/verify-pin`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({ shop_id: shopId, pin })
+  const { data, error } = await sb.functions.invoke("verify-pin", {
+    body: { shop_id: shopId, pin }
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Đăng nhập thất bại");
+
+  if (error) {
+    throw new Error(error.message || "Đăng nhập thất bại");
+  }
+  if (data && data.error) {
+    throw new Error(data.error);
+  }
   await sb.auth.setSession({
     access_token: data.access_token,
     refresh_token: data.refresh_token
@@ -2091,19 +2092,11 @@ function AdminPanel() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const callAdmin = async (action, shop_id) => {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-panel`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain"
-      },
-      body: JSON.stringify({
-        password,
-        action,
-        shop_id
-      })
+    const { data, error } = await sb.functions.invoke("admin-panel", {
+      body: { password, action, shop_id }
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Có lỗi xảy ra");
+    if (error) throw new Error(error.message || "Có lỗi xảy ra");
+    if (data && data.error) throw new Error(data.error);
     return data;
   };
   const login = async () => {
