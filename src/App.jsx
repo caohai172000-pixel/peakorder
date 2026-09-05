@@ -1240,15 +1240,19 @@ const ALL_NAV = {
     label: "Điểm bán",
     icon: Store
   },
+  channels: {
+    label: "Kênh bán hàng",
+    icon: QrGlyph
+  },
   reports: {
     label: "Báo cáo",
     icon: BarChart3
   }
 };
 const OWNER_PRIMARY = ["orders", "inventory", "reports"];
-const OWNER_SECONDARY = ["products", "ingredients", "expenses", "costs", "staff"];
+const OWNER_SECONDARY = ["products", "ingredients", "channels", "expenses", "costs", "staff"];
 const STAFF_PRIMARY = ["pos", "orders", "inventory"];
-const STAFF_SECONDARY = [];
+const STAFF_SECONDARY = ["channels"];
 function navForRole(role) {
   return role === "owner" ? {
     primary: OWNER_PRIMARY,
@@ -1726,6 +1730,10 @@ function App() {
     setBranches: setBranches,
     isMobile: isMobile,
     shopName: shopName
+  }), visibleTab === "channels" && /*#__PURE__*/React.createElement(SalesChannels, {
+    branches: branches,
+    shopName: shopName,
+    isMobile: isMobile
   }), visibleTab === "reports" && /*#__PURE__*/React.createElement(Reports, {
     orders: orders,
     products: products,
@@ -2133,6 +2141,179 @@ function ShopGate({
       fontWeight: 700
     }
   }, "Đã lưu — Đi tới quán →")));
+}
+function SalesChannels({
+  branches,
+  shopName,
+  isMobile
+}) {
+  const activeBranches = branches.filter(b => b.active !== false);
+  const [channel, setChannel] = useState("dine-in"); // dine-in | order | reserve
+  const [branch, setBranch] = useState(activeBranches[0] ? activeBranches[0].name : "");
+  const [table, setTable] = useState("");
+  const [copied, setCopied] = useState(false);
+  const link = channel === "reserve" ? `${window.location.origin}${window.location.pathname}?mode=reserve` + (branch ? `&branch=${encodeURIComponent(branch)}` : "") : buildOrderLink(branch, channel === "dine-in" ? table.trim() : "", channel);
+  const copyLink = async () => {
+    let ok = false;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(link);
+        ok = true;
+      }
+    } catch (e) {}
+    if (!ok) {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = link;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch (e) {}
+    }
+    setCopied(ok);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  const channels = [{
+    key: "dine-in",
+    icon: "🍽️",
+    label: "Gọi món tại bàn",
+    desc: "Khách quét QR tại bàn, gọi món, thanh toán cuối bữa"
+  }, {
+    key: "order",
+    icon: "📦",
+    label: "Đặt hàng",
+    desc: "Khách đặt trước, chọn hình thức thanh toán (giao/mang đi)"
+  }, {
+    key: "reserve",
+    icon: "📅",
+    label: "Đặt bàn",
+    desc: "Khách giữ chỗ trước cho 1 ngày giờ cụ thể"
+  }];
+  const cardStyle = active => ({
+    flex: "1 1 160px",
+    textAlign: "left",
+    background: active ? "#F6DCD3" : "#fff",
+    border: `1px solid ${active ? "#C1432A" : "#D8CBB8"}`,
+    borderRadius: 12,
+    padding: 14,
+    cursor: "pointer"
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: isMobile ? 16 : 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 18,
+      fontWeight: 800,
+      color: "#241C15",
+      marginBottom: 4
+    }
+  }, "Kênh bán hàng"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#8A7A6B",
+      marginBottom: 16
+    }
+  }, "3 cách khách hàng tiếp cận quán của bạn"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      marginBottom: 20
+    }
+  }, channels.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c.key,
+    onClick: () => setChannel(c.key),
+    style: cardStyle(channel === c.key)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      marginBottom: 4
+    }
+  }, c.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: "#241C15",
+      marginBottom: 2
+    }
+  }, c.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: "#8A7A6B",
+      lineHeight: 1.4
+    }
+  }, c.desc)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#fff",
+      border: "1px solid #D8CBB8",
+      borderRadius: 14,
+      padding: 20,
+      maxWidth: 420
+    }
+  }, activeBranches.length > 1 && /*#__PURE__*/React.createElement("select", {
+    value: branch,
+    onChange: e => setBranch(e.target.value),
+    style: {
+      width: "100%",
+      padding: "10px 12px",
+      borderRadius: 8,
+      border: "1px solid #D8CBB8",
+      fontSize: 13,
+      marginBottom: 10
+    }
+  }, activeBranches.map(b => /*#__PURE__*/React.createElement("option", {
+    key: b.name,
+    value: b.name
+  }, b.name))), channel === "dine-in" && /*#__PURE__*/React.createElement("input", {
+    placeholder: "Số bàn (vd: Bàn 5)",
+    value: table,
+    onChange: e => setTable(e.target.value),
+    style: {
+      width: "100%",
+      padding: "10px 12px",
+      borderRadius: 8,
+      border: "1px solid #D8CBB8",
+      fontSize: 13,
+      marginBottom: 14
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement(QrMenuCode, {
+    url: link,
+    size: 180
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      fontSize: 11.5,
+      color: "#8A7A6B",
+      wordBreak: "break-all",
+      textAlign: "center",
+      marginBottom: 10
+    }
+  }, link), /*#__PURE__*/React.createElement("button", {
+    onClick: copyLink,
+    style: {
+      width: "100%",
+      background: copied ? "#1F6E52" : "#fff",
+      border: `1px solid ${copied ? "#1F6E52" : "#D8CBB8"}`,
+      borderRadius: 8,
+      padding: "10px 14px",
+      color: copied ? "#fff" : "#241C15",
+      fontSize: 13,
+      fontWeight: 600
+    }
+  }, copied ? "✓ Đã copy" : "📋 Copy đường dẫn")));
 }
 function TableReservation({
   branches,
