@@ -1618,6 +1618,8 @@ function useOnline() {
 function App() {
   const [shopName, setShopName] = useState("");
   const [shopLogoUrl, setShopLogoUrl] = useState(null);
+  const [paymentRequests, setPaymentRequests] = useState([]);
+  const [tableReservations, setTableReservations] = useState([]);
   const [products, setProducts] = useState(SEED_PRODUCTS);
   const [branches, setBranches] = useState(SEED_BRANCHES);
   const [staff, setStaff] = useState(SEED_STAFF);
@@ -1672,12 +1674,18 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes] = await Promise.all([sb.from("shops").select("name,status,logo_url").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
-        }), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
+        }), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("payment_requests").select("*").eq("shop_id", shopId).order("created_at", {
+          ascending: false
+        }), sb.from("table_reservations").select("*").eq("shop_id", shopId).order("created_at", {
+          ascending: false
+        })]);
         setApprovalStatus(shopRes.data ? shopRes.data.status : "not_found");
+        setPaymentRequests(prRes.data || []);
+        setTableReservations(resvRes.data || []);
         let prodRows = p.data || [];
         let branchRows = b.data || [];
         let staffRows = s.data || [];
@@ -1928,7 +1936,8 @@ function App() {
         shopId: shopId,
         shopName: shopName,
         onBack: () => setAppMode("start"),
-        isMobile: isMobile
+        isMobile: isMobile,
+        products: products
       });
     }
     if (appMode === "login") {
@@ -2043,7 +2052,11 @@ function App() {
     setBranchStock: setBranchStock,
     setOrders: setOrders,
     isMobile: isMobile,
-    shopId: shopId
+    shopId: shopId,
+    paymentRequests: paymentRequests,
+    setPaymentRequests: setPaymentRequests,
+    tableReservations: tableReservations,
+    setTableReservations: setTableReservations
   }), visibleTab === "expenses" && /*#__PURE__*/React.createElement(Expenses, {
     fixedCosts: fixedCosts,
     setFixedCosts: setFixedCosts,
@@ -2778,7 +2791,8 @@ function TableReservation({
   shopId,
   shopName,
   onBack,
-  isMobile
+  isMobile,
+  products
 }) {
   const activeBranches = branches.filter(b => b.active !== false);
   const [branch, setBranch] = useState(activeBranches[0] ? activeBranches[0].name : "");
@@ -2791,6 +2805,27 @@ function TableReservation({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState(false);
+  const [wantPreOrder, setWantPreOrder] = useState(false);
+  const [preOrderItems, setPreOrderItems] = useState([]); // [{id,name,price,qty}]
+  const addPreOrderItem = p => {
+    setPreOrderItems(items => {
+      const existing = items.find(i => i.id === p.id);
+      if (existing) return items.map(i => i.id === p.id ? { ...i,
+        qty: i.qty + 1
+      } : i);
+      return [...items, {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        qty: 1
+      }];
+    });
+  };
+  const changePreOrderQty = (id, delta) => {
+    setPreOrderItems(items => items.map(i => i.id === id ? { ...i,
+      qty: i.qty + delta
+    } : i).filter(i => i.qty > 0));
+  };
   const inputStyle = {
     width: "100%",
     padding: "12px 14px",
@@ -2815,7 +2850,8 @@ function TableReservation({
         party_size: partySize,
         reservation_date: date,
         reservation_time: time,
-        note: note.trim() || null
+        note: note.trim() || null,
+        pre_order_items: wantPreOrder && preOrderItems.length > 0 ? JSON.stringify(preOrderItems) : null
       });
       if (error) throw error;
       setDone(true);
@@ -2944,7 +2980,93 @@ function TableReservation({
     value: partySize,
     onChange: e => setPartySize(Number(e.target.value) || 1),
     style: inputStyle
-  }), /*#__PURE__*/React.createElement("textarea", {
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontSize: 13,
+      color: "#361E14",
+      marginBottom: wantPreOrder ? 10 : 16,
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: wantPreOrder,
+    onChange: e => setWantPreOrder(e.target.checked)
+  }), "Đặt món trước (thay vì gọi món khi tới)"), wantPreOrder && products && products.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F3EBD9",
+      border: "1px solid #D9C9B4",
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "#7D6E63",
+      marginBottom: 8
+    }
+  }, "Bấm để thêm món:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6,
+      marginBottom: preOrderItems.length > 0 ? 10 : 0
+    }
+  }, products.slice(0, 20).map(p => /*#__PURE__*/React.createElement("button", {
+    key: p.id,
+    onClick: () => addPreOrderItem(p),
+    style: {
+      background: "#fff",
+      border: "1px solid #D9C9B4",
+      borderRadius: 8,
+      padding: "6px 10px",
+      fontSize: 12,
+      color: "#361E14"
+    }
+  }, "+ ", p.name))), preOrderItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 6
+    }
+  }, preOrderItems.map(it => /*#__PURE__*/React.createElement("div", {
+    key: it.id,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      background: "#fff",
+      borderRadius: 8,
+      padding: "6px 10px",
+      fontSize: 12.5
+    }
+  }, /*#__PURE__*/React.createElement("span", null, it.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => changePreOrderQty(it.id, -1),
+    style: {
+      background: "none",
+      border: "1px solid #D9C9B4",
+      borderRadius: 6,
+      width: 22,
+      height: 22
+    }
+  }, "−"), /*#__PURE__*/React.createElement("span", null, it.qty), /*#__PURE__*/React.createElement("button", {
+    onClick: () => changePreOrderQty(it.id, 1),
+    style: {
+      background: "none",
+      border: "1px solid #D9C9B4",
+      borderRadius: 6,
+      width: 22,
+      height: 22
+    }
+  }, "+")))))), /*#__PURE__*/React.createElement("textarea", {
     placeholder: "Ghi chú (không bắt buộc)",
     value: note,
     onChange: e => setNote(e.target.value),
@@ -7059,11 +7181,34 @@ function Orders({
   setBranchStock,
   setOrders,
   isMobile,
-  shopId
+  shopId,
+  paymentRequests,
+  setPaymentRequests,
+  tableReservations,
+  setTableReservations
 }) {
   const [filterBranch, setFilterBranch] = useState("all");
   const [open, setOpen] = useState(null);
   const isOwner = currentUser.role === "owner";
+  const myBranch = currentUser.branch;
+  const pendingPaymentRequests = paymentRequests.filter(r => r.status === "pending" && (isOwner || r.branch === myBranch));
+  const pendingReservations = tableReservations.filter(r => r.status === "pending" && (isOwner || r.branch === myBranch));
+  const resolvePaymentRequest = async id => {
+    await sb.from("payment_requests").update({
+      status: "done"
+    }).eq("id", id);
+    setPaymentRequests(rs => rs.map(r => r.id === id ? { ...r,
+      status: "done"
+    } : r));
+  };
+  const setReservationStatus = async (id, status) => {
+    await sb.from("table_reservations").update({
+      status
+    }).eq("id", id);
+    setTableReservations(rs => rs.map(r => r.id === id ? { ...r,
+      status
+    } : r));
+  };
   const base = isOwner ? orders : orders.filter(o => o.branch === currentUser.branch);
   const filtered = base.filter(o => filterBranch === "all" || o.branch === filterBranch).sort((a, b) => {
     const ap = a.status === "pending" ? 0 : 1;
@@ -7098,7 +7243,133 @@ function Orders({
       if (error) console.error("confirm order", error);
     });
   };
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement("div", null, (pendingPaymentRequests.length > 0 || pendingReservations.length > 0) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 10,
+      marginBottom: 18
+    }
+  }, pendingPaymentRequests.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#FFDAD3",
+      border: `1px solid ${JADE}`,
+      borderRadius: 12,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: JADE,
+      marginBottom: 8
+    }
+  }, "💳 Yêu cầu thanh toán (", pendingPaymentRequests.length, ")"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 6
+    }
+  }, pendingPaymentRequests.map(r => /*#__PURE__*/React.createElement("div", {
+    key: r.id,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      background: CARD,
+      borderRadius: 8,
+      padding: "8px 12px",
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("span", null, r.branch, " · Bàn ", r.table_name), /*#__PURE__*/React.createElement("button", {
+    onClick: () => resolvePaymentRequest(r.id),
+    style: {
+      background: SAGE,
+      border: "none",
+      borderRadius: 6,
+      padding: "5px 10px",
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Đã thanh toán"))))), pendingReservations.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F3EBD9",
+      border: `1px solid ${LINE}`,
+      borderRadius: 12,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: INK,
+      marginBottom: 8
+    }
+  }, "📅 Đơn đặt bàn (", pendingReservations.length, ")"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 6
+    }
+  }, pendingReservations.map(r => /*#__PURE__*/React.createElement("div", {
+    key: r.id,
+    style: {
+      display: "grid",
+      gap: 4,
+      background: CARD,
+      borderRadius: 8,
+      padding: "10px 12px",
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700
+    }
+  }, r.customer_name, " · ", r.party_size, " người"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: MUTED
+    }
+  }, r.branch, " · ", r.reservation_date, " lúc ", r.reservation_time, " · SĐT ", r.phone), r.note && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: MUTED,
+      fontStyle: "italic"
+    }
+  }, "Ghi chú: ", r.note), r.pre_order_items && Array.isArray(JSON.parse(r.pre_order_items || "[]")) && JSON.parse(r.pre_order_items || "[]").length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: JADE
+    }
+  }, "Đặt món trước: ", JSON.parse(r.pre_order_items).map(it => `${it.name} x${it.qty}`).join(", ")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setReservationStatus(r.id, "confirmed"),
+    style: {
+      background: SAGE,
+      border: "none",
+      borderRadius: 6,
+      padding: "5px 12px",
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Xác nhận"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setReservationStatus(r.id, "cancelled"),
+    style: {
+      background: "none",
+      border: `1px solid ${LINE}`,
+      borderRadius: 6,
+      padding: "5px 12px",
+      color: MUTED,
+      fontSize: 12,
+      fontWeight: 600
+    }
+  }, "Hủy"))))))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
@@ -9437,10 +9708,23 @@ function CustomerOrder({
       borderTop: `1px solid ${LINE}`,
       padding: isMobile ? "12px 16px" : "14px 18px"
     }
-  }, /*#__PURE__*/React.createElement("input", {
+  }, dineIn && initialTable ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "10px 12px",
+      borderRadius: 8,
+      background: "#F3EBD9",
+      marginBottom: 8,
+      fontSize: 13,
+      fontWeight: 700,
+      color: INK
+    }
+  }, "📍 Bàn ", initialTable) : /*#__PURE__*/React.createElement("input", {
     value: tableOrRecipient,
     onChange: e => setTableOrRecipient(e.target.value),
-    placeholder: "Số bàn hoặc tên người nhận *",
+    placeholder: dineIn ? "Số bàn *" : "Tên người nhận *",
     style: {
       width: "100%",
       padding: "10px 12px",
@@ -9692,7 +9976,6 @@ function CustomerOrder({
       fontWeight: 700,
       letterSpacing: "0.06em",
       textTransform: "uppercase",
-      transform: "rotate(-1deg)",
       marginBottom: 8
     }
   }, /*#__PURE__*/React.createElement("span", {
