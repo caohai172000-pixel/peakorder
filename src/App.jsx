@@ -844,6 +844,15 @@ const Percent = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, nu
 const ArrowLeft = makeLineIcon(/*#__PURE__*/React.createElement("path", {
   d: "M19 12H5M10.5 6 5 12l5.5 6"
 }));
+const Calendar = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("rect", {
+  x: "3.5",
+  y: "5",
+  width: "17",
+  height: "15.5",
+  rx: "2"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M3.5 9.5h17M8 3v3M16 3v3"
+})));
 
 // ---- biểu đồ tự vẽ (thay cho recharts) ----
 function MiniLineChart({
@@ -1938,6 +1947,8 @@ function App() {
     }
     return /*#__PURE__*/React.createElement(StartScreen, {
       onSelectOrder: () => setAppMode("order"),
+      onSelectDineIn: () => setAppMode("dine-in"),
+      onSelectReserve: () => setAppMode("reserve"),
       onSelectManage: () => setAppMode("login"),
       isMobile: isMobile,
       products: products,
@@ -3603,6 +3614,8 @@ function StatusDot({
 }
 function StartScreen({
   onSelectOrder,
+  onSelectDineIn,
+  onSelectReserve,
   onSelectManage,
   isMobile,
   products,
@@ -3694,37 +3707,56 @@ function StartScreen({
     }
   }, isOpen ? "Chào mừng bạn" : reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ"), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: isMobile ? "100%" : 320
+      width: isMobile ? "100%" : 320,
+      display: "grid",
+      gap: 10
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, [{
     onClick: onSelectOrder,
+    icon: Receipt,
+    title: isOpen ? "Đặt hàng" : "Đặt trước",
+    desc: isOpen ? "Giao/mang đi" : "Xử lý khi quán mở lại"
+  }, {
+    onClick: onSelectDineIn,
+    icon: Package,
+    title: "Gọi món tại bàn",
+    desc: "Đang ngồi tại quán"
+  }, {
+    onClick: onSelectReserve,
+    icon: Calendar,
+    title: "Đặt bàn",
+    desc: "Giữ chỗ trước"
+  }].map((it, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: it.onClick,
     style: {
       width: "100%",
       display: "flex",
-      flexDirection: "column",
       alignItems: "center",
-      gap: 8,
-      background: JADE_GRADIENT,
-      border: "none",
-      borderRadius: 18,
-      padding: "28px 20px",
-      color: "#fff",
-      boxShadow: "0 8px 24px rgba(226,94,62,0.28)"
+      gap: 14,
+      background: i === 0 ? JADE_GRADIENT : CARD,
+      border: i === 0 ? "none" : `1px solid ${LINE}`,
+      borderRadius: 16,
+      padding: "16px 18px",
+      color: i === 0 ? "#fff" : INK,
+      textAlign: "left",
+      boxShadow: i === 0 ? "0 8px 24px rgba(168,62,40,0.28)" : "none"
     }
-  }, /*#__PURE__*/React.createElement(Receipt, {
-    size: 30
-  }), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(it.icon, {
+    size: 26,
+    color: i === 0 ? "#fff" : JADE
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
-      fontSize: 20,
+      fontSize: 16,
       fontWeight: 700
     }
-  }, isOpen ? "Đặt hàng" : "Đặt trước"), /*#__PURE__*/React.createElement("div", {
+  }, it.title), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
-      color: "rgba(255,255,255,0.85)"
+      fontSize: 12,
+      color: i === 0 ? "rgba(255,255,255,0.85)" : MUTED
     }
-  }, isOpen ? "Đặt hàng tại đây" : "Xử lý khi quán mở lại")), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, it.desc)))), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16
     }
