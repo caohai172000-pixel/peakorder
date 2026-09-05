@@ -2152,19 +2152,51 @@ function SalesChannels({
   const [branch, setBranch] = useState(activeBranches[0] ? activeBranches[0].name : "");
   const [table, setTable] = useState("");
   const [copied, setCopied] = useState(false);
-  const link = channel === "reserve" ? `${window.location.origin}${window.location.pathname}?mode=reserve` + (branch ? `&branch=${encodeURIComponent(branch)}` : "") : buildOrderLink(branch, channel === "dine-in" ? table.trim() : "", channel);
+  const inputStyle = {
+    padding: "10px 12px",
+    borderRadius: 8,
+    border: `1px solid ${LINE}`,
+    fontSize: 13
+  };
+  const channels = [{
+    key: "dine-in",
+    icon: "🍽️",
+    label: "Gọi món tại bàn",
+    desc: "Khách quét QR tại bàn, gọi món, thanh toán cuối bữa",
+    defaultBottom: "Quét mã để gọi món tại bàn"
+  }, {
+    key: "order",
+    icon: "📦",
+    label: "Đặt hàng",
+    desc: "Khách đặt trước, chọn hình thức thanh toán (giao/mang đi)",
+    defaultBottom: "Quét mã để đặt hàng giao/mang đi"
+  }, {
+    key: "reserve",
+    icon: "📅",
+    label: "Đặt bàn",
+    desc: "Khách giữ chỗ trước cho 1 ngày giờ cụ thể",
+    defaultBottom: "Quét mã để đặt bàn trước"
+  }];
+  const current = channels.find(c => c.key === channel);
+  const [topText, setTopText] = useState(shopName || "");
+  const [bottomText, setBottomText] = useState(current.defaultBottom);
+  const [showLogo, setShowLogo] = useState(true);
+  useEffect(() => {
+    setBottomText(current.defaultBottom);
+  }, [channel]);
+  const url = channel === "reserve" ? `${window.location.origin}${window.location.pathname}?mode=reserve` + (branch ? `&branch=${encodeURIComponent(branch)}` : "") : buildOrderLink(branch, channel === "dine-in" ? table.trim() : "", channel);
   const copyLink = async () => {
     let ok = false;
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(link);
+        await navigator.clipboard.writeText(url);
         ok = true;
       }
     } catch (e) {}
     if (!ok) {
       try {
         const ta = document.createElement("textarea");
-        ta.value = link;
+        ta.value = url;
         ta.style.position = "fixed";
         ta.style.opacity = "0";
         document.body.appendChild(ta);
@@ -2177,22 +2209,31 @@ function SalesChannels({
     setCopied(ok);
     setTimeout(() => setCopied(false), 2000);
   };
-  const channels = [{
-    key: "dine-in",
-    icon: "🍽️",
-    label: "Gọi món tại bàn",
-    desc: "Khách quét QR tại bàn, gọi món, thanh toán cuối bữa"
-  }, {
-    key: "order",
-    icon: "📦",
-    label: "Đặt hàng",
-    desc: "Khách đặt trước, chọn hình thức thanh toán (giao/mang đi)"
-  }, {
-    key: "reserve",
-    icon: "📅",
-    label: "Đặt bàn",
-    desc: "Khách giữ chỗ trước cho 1 ngày giờ cụ thể"
-  }];
+  const downloadCard = () => {
+    drawQrCard({
+      url,
+      topText,
+      bottomText,
+      table: channel === "dine-in" ? table.trim() : "",
+      showLogo
+    }).then(canvas => {
+      const dataUrl = canvas.toDataURL("image/png");
+      const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+      if (isIOS) {
+        const w = window.open();
+        if (w) {
+          w.document.write(`<title>Thiệp QR — ${current.label}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${dataUrl}" style="max-width:100%;height:auto;" /></body>`);
+        } else {
+          window.location.href = dataUrl;
+        }
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `qr-${channel}-${branch || "quan"}${table.trim() ? "-ban-" + table.trim() : ""}.png`;
+      a.click();
+    });
+  };
   const cardStyle = active => ({
     flex: "1 1 160px",
     textAlign: "left",
@@ -2211,13 +2252,13 @@ function SalesChannels({
     style: {
       fontSize: 18,
       fontWeight: 800,
-      color: "#241C15",
+      color: INK,
       marginBottom: 4
     }
   }, "Kênh bán hàng"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: "#8A7A6B",
+      color: MUTED,
       marginBottom: 16
     }
   }, "3 cách khách hàng tiếp cận quán của bạn"), /*#__PURE__*/React.createElement("div", {
@@ -2240,80 +2281,156 @@ function SalesChannels({
     style: {
       fontSize: 13.5,
       fontWeight: 700,
-      color: "#241C15",
+      color: INK,
       marginBottom: 2
     }
   }, c.label), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#8A7A6B",
+      color: MUTED,
       lineHeight: 1.4
     }
   }, c.desc)))), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "#fff",
-      border: "1px solid #D8CBB8",
-      borderRadius: 14,
-      padding: 20,
-      maxWidth: 420
+      background: CARD,
+      border: `1px solid ${LINE}`,
+      borderRadius: 12,
+      padding: 16
     }
-  }, activeBranches.length > 1 && /*#__PURE__*/React.createElement("select", {
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      marginBottom: 4,
+      textAlign: "center"
+    }
+  }, "Mã QR — ", current.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: MUTED,
+      marginBottom: 14,
+      textAlign: "center"
+    }
+  }, current.desc), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: isMobile ? "1fr" : "260px 1fr",
+      gap: 20,
+      alignItems: "start"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement(QrCardPreview, {
+    url: url,
+    topText: topText,
+    bottomText: bottomText,
+    table: channel === "dine-in" ? table.trim() : "",
+    showLogo: showLogo,
+    width: 230
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 8
+    }
+  }, activeBranches.length > 1 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      marginBottom: 4
+    }
+  }, "Điểm bán"), /*#__PURE__*/React.createElement("select", {
     value: branch,
     onChange: e => setBranch(e.target.value),
-    style: {
-      width: "100%",
-      padding: "10px 12px",
-      borderRadius: 8,
-      border: "1px solid #D8CBB8",
-      fontSize: 13,
-      marginBottom: 10
+    style: { ...inputStyle,
+      width: "100%"
     }
   }, activeBranches.map(b => /*#__PURE__*/React.createElement("option", {
     key: b.name,
     value: b.name
-  }, b.name))), channel === "dine-in" && /*#__PURE__*/React.createElement("input", {
-    placeholder: "Số bàn (vd: Bàn 5)",
+  }, b.name)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      marginBottom: 4
+    }
+  }, "Chữ phía trên"), /*#__PURE__*/React.createElement("input", {
+    value: topText,
+    onChange: e => setTopText(e.target.value),
+    style: { ...inputStyle,
+      width: "100%"
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      marginBottom: 4
+    }
+  }, "Chữ phía dưới"), /*#__PURE__*/React.createElement("input", {
+    value: bottomText,
+    onChange: e => setBottomText(e.target.value),
+    style: { ...inputStyle,
+      width: "100%"
+    }
+  })), channel === "dine-in" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      marginBottom: 4
+    }
+  }, "Số bàn (không bắt buộc — đổi số để tạo mã cho bàn khác)"), /*#__PURE__*/React.createElement("input", {
+    placeholder: "vd. 5",
     value: table,
     onChange: e => setTable(e.target.value),
-    style: {
-      width: "100%",
-      padding: "10px 12px",
-      borderRadius: 8,
-      border: "1px solid #D8CBB8",
-      fontSize: 13,
-      marginBottom: 14
+    style: { ...inputStyle,
+      width: 140
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("label", {
     style: {
       display: "flex",
-      justifyContent: "center",
-      marginBottom: 14
+      alignItems: "center",
+      gap: 8,
+      fontSize: 12.5,
+      color: INK,
+      cursor: "pointer"
     }
-  }, /*#__PURE__*/React.createElement(QrMenuCode, {
-    url: link,
-    size: 180
-  })), /*#__PURE__*/React.createElement("div", {
-    className: "mono",
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: showLogo,
+    onChange: e => setShowLogo(e.target.checked)
+  }), "Gắn logo quán vào giữa mã QR"), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 11.5,
-      color: "#8A7A6B",
-      wordBreak: "break-all",
-      textAlign: "center",
-      marginBottom: 10
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      marginTop: 6
     }
-  }, link), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: downloadCard,
+    style: {
+      background: JADE_GRADIENT,
+      border: "none",
+      borderRadius: 8,
+      padding: "10px 16px",
+      color: "#fff",
+      fontSize: 13,
+      fontWeight: 700
+    }
+  }, "⬇ Tải ảnh QR"), /*#__PURE__*/React.createElement("button", {
     onClick: copyLink,
     style: {
-      width: "100%",
       background: copied ? "#1F6E52" : "#fff",
-      border: `1px solid ${copied ? "#1F6E52" : "#D8CBB8"}`,
+      border: `1px solid ${copied ? "#1F6E52" : LINE}`,
       borderRadius: 8,
-      padding: "10px 14px",
-      color: copied ? "#fff" : "#241C15",
+      padding: "10px 16px",
+      color: copied ? "#fff" : INK,
       fontSize: 13,
       fontWeight: 600
     }
-  }, copied ? "✓ Đã copy" : "📋 Copy đường dẫn")));
+  }, copied ? "✓ Đã copy" : "📋 Copy đường dẫn"))))));
 }
 function TableReservation({
   branches,
@@ -7232,11 +7349,6 @@ function Staff({
   shopName
 }) {
   const [confirmDelete, setConfirmDelete] = useState(null); // { type: "admin"|"emp", id, label } | null
-  const [qrBranch, setQrBranch] = useState(null); // tên điểm bán đang mở panel QR
-  const [qrTable, setQrTable] = useState("");
-  const [qrTopText, setQrTopText] = useState(shopName || "");
-  const [qrBottomText, setQrBottomText] = useState("Quét mã để xem menu, gọi món và thanh toán");
-  const [qrShowLogo, setQrShowLogo] = useState(true);
   // --- Điểm bán ---
   const [branchEditing, setBranchEditing] = useState(null); // "new" | name | null
   const [branchForm, setBranchForm] = useState({
@@ -7467,25 +7579,6 @@ function Staff({
       flexShrink: 0
     }
   }, b.active === false ? "Mở lại" : "Tạm ngưng"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setQrBranch(qrBranch === b.name ? null : b.name);
-      setQrTable("");
-    },
-    style: {
-      background: qrBranch === b.name ? "#F6DCD3" : PAPER,
-      border: "none",
-      borderRadius: 7,
-      width: 30,
-      height: 30,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: qrBranch === b.name ? JADE_DARK : MUTED,
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement(Basket, {
-    size: 14
-  })), /*#__PURE__*/React.createElement("button", {
     onClick: () => startEditBranch(b),
     style: {
       background: PAPER,
@@ -7501,147 +7594,7 @@ function Staff({
     }
   }, /*#__PURE__*/React.createElement(Pencil, {
     size: 14
-  }))), qrBranch === b.name && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: CARD,
-      border: `1px solid ${LINE}`,
-      borderRadius: 12,
-      padding: 16,
-      marginTop: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "disp",
-    style: {
-      fontSize: 13,
-      fontWeight: 700,
-      marginBottom: 4,
-      textAlign: "center"
-    }
-  }, "Mã QR menu — ", b.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
-      color: MUTED,
-      marginBottom: 14,
-      textAlign: "center"
-    }
-  }, "In thiệp này dán lên bàn/quầy — khách quét là vào thẳng trang đặt hàng của điểm bán này."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: isMobile ? "1fr" : "260px 1fr",
-      gap: 20,
-      alignItems: "start"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "center"
-    }
-  }, /*#__PURE__*/React.createElement(QrCardPreview, {
-    url: buildOrderLink(b.name, qrTable.trim()),
-    topText: qrTopText,
-    bottomText: qrBottomText,
-    table: qrTable.trim(),
-    showLogo: qrShowLogo,
-    width: 230
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: MUTED,
-      marginBottom: 4
-    }
-  }, "Chữ phía trên"), /*#__PURE__*/React.createElement("input", {
-    value: qrTopText,
-    onChange: e => setQrTopText(e.target.value),
-    style: inputStyle
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: MUTED,
-      marginBottom: 4
-    }
-  }, "Chữ phía dưới"), /*#__PURE__*/React.createElement("input", {
-    value: qrBottomText,
-    onChange: e => setQrBottomText(e.target.value),
-    style: inputStyle
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: MUTED,
-      marginBottom: 4
-    }
-  }, "Số bàn (không bắt buộc — đổi số để tạo mã cho bàn khác)"), /*#__PURE__*/React.createElement("input", {
-    placeholder: "vd. 5",
-    value: qrTable,
-    onChange: e => setQrTable(e.target.value),
-    style: {
-      ...inputStyle,
-      width: 140
-    }
-  })), /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      fontSize: 12.5,
-      color: INK,
-      cursor: "pointer"
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    type: "checkbox",
-    checked: qrShowLogo,
-    onChange: e => setQrShowLogo(e.target.checked)
-  }), "Gắn logo quán vào giữa mã QR"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      drawQrCard({
-        url: buildOrderLink(b.name, qrTable.trim()),
-        topText: qrTopText,
-        bottomText: qrBottomText,
-        table: qrTable.trim(),
-        showLogo: qrShowLogo
-      }).then(canvas => {
-        const dataUrl = canvas.toDataURL("image/png");
-        const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-        if (isIOS) {
-          // Safari/iOS không tải file qua thuộc tính download với data URL —
-          // mở ảnh ở tab mới để người dùng nhấn giữ và lưu ảnh.
-          const w = window.open();
-          if (w) {
-            w.document.write(`<title>Thiệp QR — ${b.name}</title><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${dataUrl}" style="max-width:100%;height:auto;" /></body>`);
-          } else {
-            window.location.href = dataUrl;
-          }
-          return;
-        }
-        const a = document.createElement("a");
-        a.href = dataUrl;
-        a.download = `qr-menu-${b.name}${qrTable.trim() ? "-ban-" + qrTable.trim() : ""}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      });
-    },
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 6,
-      background: JADE,
-      color: "#fff",
-      border: "none",
-      borderRadius: 8,
-      padding: "10px 16px",
-      fontSize: 12.5,
-      fontWeight: 600,
-      marginTop: 4
-    }
-  }, /*#__PURE__*/React.createElement(Download, {
-    size: 13
-  }), " Tải thiệp QR (ảnh lớn để in)")))), branchEditing === b.name && /*#__PURE__*/React.createElement("div", {
+  }))), branchEditing === b.name && /*#__PURE__*/React.createElement("div", {
     style: {
       background: CARD,
       border: `1px solid ${LINE}`,
