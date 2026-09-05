@@ -494,6 +494,26 @@ function makeIcon(glyph) {
     }, glyph);
   };
 }
+// Icon SVG nét đơn (monoline), phong cách bao bì tham khảo — thay cho emoji.
+function makeLineIcon(children) {
+  return function LineIcon({
+    size = 20,
+    color = "currentColor",
+    style
+  }) {
+    return /*#__PURE__*/React.createElement("svg", {
+      width: size,
+      height: size,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: color,
+      strokeWidth: 1.7,
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      style: style
+    }, children);
+  };
+}
 // ---- Minh họa nét vẽ đơn sắc (line-art), phong cách tham khảo từ bao bì ----
 function NoodleFlourish({
   width = 160,
@@ -570,15 +590,87 @@ function StampLogo({
   }, letter));
 }
 const LayoutDashboard = makeIcon("▦");
-const ShoppingCart = makeIcon("🛒");
-const Package = makeIcon("📦");
-const Warehouse = makeIcon("🏬");
-const Receipt = makeIcon("🧾");
-const BarChart3 = makeIcon("📊");
+const ShoppingCart = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
+  d: "M4 4h2l1.4 12.6a2 2 0 0 0 2 1.4h7.6a2 2 0 0 0 2-1.6L20 8H7"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "10",
+  cy: "20",
+  r: "1"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "17",
+  cy: "20",
+  r: "1"
+})));
+const Package = /*#__PURE__*/EmptyBowlArt;
+const Warehouse = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
+  d: "M4 9l8-5 8 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9 20v-6h6v6"
+})));
+const Receipt = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
+  d: "M6 3h12v18l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9 8h6M9 12h6"
+})));
+const BarChart3 = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
+  d: "M4 20V10M11 20V4M18 20v-7"
+})));
+const Store = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
+  cx: "8",
+  cy: "8",
+  r: "3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"
+}), /*#__PURE__*/React.createElement("circle", {
+  cx: "17",
+  cy: "9",
+  r: "2.4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M14.5 20c.2-2.7 2-5 4.5-5s4 1.8 4 4.4"
+})));
+const DollarSign = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "8.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M9.5 15c.5 1 1.6 1.6 2.7 1.6 1.5 0 2.6-.8 2.6-2s-1-1.7-2.8-2.2c-1.7-.5-2.6-1.1-2.6-2.2 0-1.2 1.1-2 2.6-2 1.1 0 2.1.5 2.6 1.4M12 7.3v9.4"
+})));
+const Wrench = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("circle", {
+  cx: "12",
+  cy: "12",
+  r: "3.2"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M17.7 6.3l-1.4 1.4M7.7 16.3l-1.4 1.4M17.7 17.7l-1.4-1.4M7.7 7.7 6.3 6.3"
+})));
+const Basket = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("path", {
+  d: "M4 9h16l-1.6 10.3a1.5 1.5 0 0 1-1.5 1.3H7.1a1.5 1.5 0 0 1-1.5-1.3z"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M8 9a4 4 0 0 1 8 0M4 9h16M9 13v5M15 13v5"
+})));
+const QrGlyph = makeLineIcon(/*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("rect", {
+  x: "3.5",
+  y: "3.5",
+  width: "6",
+  height: "6",
+  rx: "1"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "14.5",
+  y: "3.5",
+  width: "6",
+  height: "6",
+  rx: "1"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "3.5",
+  y: "14.5",
+  width: "6",
+  height: "6",
+  rx: "1"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M14.5 15h2.5v2.5M20.5 14.5v2.5h-2M14.5 20.5h6"
+})));
 const Plus = makeIcon("+");
 const Minus = makeIcon("−");
 const Trash2 = makeIcon("🗑");
-const Store = makeIcon("🏪");
 const AlertTriangle = makeIcon("⚠");
 const Search = makeIcon("🔍");
 const X = makeIcon("✕");
@@ -596,10 +688,7 @@ const WifiOff = makeIcon("📵");
 const LogOut = makeIcon("⎋");
 const Users = makeIcon("👥");
 const Percent = makeIcon("%");
-const DollarSign = makeIcon("$");
 const ArrowLeft = makeIcon("←");
-const Wrench = makeIcon("⚙");
-const Basket = makeIcon("🧺");
 
 // ---- biểu đồ tự vẽ (thay cho recharts) ----
 function MiniLineChart({
@@ -779,7 +868,6 @@ function MiniDonut({
     }
   })));
 }
-const QrGlyph = makeIcon("▦");
 const VIETQR_BANKS = [{
   code: "MB",
   name: "MB Bank"
@@ -3407,21 +3495,21 @@ function StartScreen({
     style: {
       width: 184,
       height: 184,
-      borderRadius: "50%",
-      overflow: "hidden",
-      background: JADE_GRADIENT,
-      boxShadow: "0 6px 20px rgba(74,46,27,0.15)",
+      borderRadius: 28,
+      border: `3px solid ${JADE}`,
+      background: PAPER,
+      boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 14
+      marginBottom: 14,
+      padding: 20
     }
   }, /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
       fontSize: 56,
-      fontWeight: 700,
-      color: "#fff"
+      color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
     style: {
