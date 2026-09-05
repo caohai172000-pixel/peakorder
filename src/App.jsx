@@ -96,7 +96,7 @@ async function drawQrCard({
   ctx.textAlign = "center";
   y = 80;
   if (topText) {
-    ctx.fillStyle = "#3A2818";
+    ctx.fillStyle = "#57423D";
     ctx.font = "bold 34px sans-serif";
     y = wrapCenteredText(ctx, topText, W / 2, y, W - 100, 44) + 16;
   }
@@ -107,7 +107,7 @@ async function drawQrCard({
       margin: 1,
       errorCorrectionLevel: "H",
       color: {
-        dark: "#241C15",
+        dark: "#361E14",
         light: "#FFFFFF"
       }
     }, err => err ? reject(err) : resolve());
@@ -133,13 +133,13 @@ async function drawQrCard({
   }
   y += qrSize + 56;
   if (table) {
-    ctx.fillStyle = "#C1432A";
+    ctx.fillStyle = "#A83E28";
     ctx.font = "bold 44px sans-serif";
     ctx.fillText(`BÀN ${table}`, W / 2, y);
     y += 60;
   }
   if (bottomText) {
-    ctx.fillStyle = "#8A7A6B";
+    ctx.fillStyle = "#7D6E63";
     ctx.font = "22px sans-serif";
     wrapCenteredText(ctx, bottomText, W / 2, y, W - 110, 30);
   }
@@ -157,7 +157,7 @@ function QrMenuCode({
       margin: 1,
       errorCorrectionLevel: "H",
       color: {
-        dark: "#241C15",
+        dark: "#361E14",
         light: "#FFFFFF"
       }
     }, (err, durl) => {
@@ -229,20 +229,20 @@ function QrCardPreview({
     }
   });
 }
-const INK = "#241C15";
-const PAPER = "#FAF6EE";
-const CARD = "#FFFFFF";
-const JADE = "#C1432A";
-const JADE_DARK = "#3A2818";
-const JADE_GRADIENT = "linear-gradient(135deg, #E87A5D 0%, #C1432A 100%)";
-const AMBER = "#E8A33D";
+const INK = "#361E14";
+const PAPER = "#FFF9ED";
+const CARD = "#FCF8F2";
+const JADE = "#A83E28";
+const JADE_DARK = "#57423D";
+const JADE_GRADIENT = "#A83E28";
+const AMBER = "#B27B2B";
 const AMBER_DARK = "#8C5F1D";
-const SAGE = "#6B7F5E";
-const SAGE_DARK = "#4A5940";
-const SAGE_BG = "#F3EEE0";
-const RUST = "#DC2626";
-const MUTED = "#8A7A6B";
-const LINE = "#E7DFD3";
+const SAGE = "#486842";
+const SAGE_DARK = "#32512D";
+const SAGE_BG = "#F3EBD9";
+const RUST = "#BA1A1A";
+const MUTED = "#7D6E63";
+const LINE = "#D9C9B4";
 const fmt = n => new Intl.NumberFormat("vi-VN").format(Math.round(n || 0)) + "đ";
 const uid = () => Math.random().toString(36).slice(2, 10);
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -497,7 +497,7 @@ function makeIcon(glyph) {
 // ---- Minh họa nét vẽ đơn sắc (line-art), phong cách tham khảo từ bao bì ----
 function NoodleFlourish({
   width = 160,
-  color = "#8A7A6B",
+  color = "#7D6E63",
   style
 }) {
   return /*#__PURE__*/React.createElement("svg", {
@@ -521,7 +521,7 @@ function NoodleFlourish({
 }
 function EmptyBowlArt({
   size = 96,
-  color = "#8A7A6B"
+  color = "#7D6E63"
 }) {
   return /*#__PURE__*/React.createElement("svg", {
     width: size,
@@ -549,7 +549,7 @@ function EmptyBowlArt({
 function StampLogo({
   size = 56,
   letter = "P",
-  color = "#1F6E52"
+  color = "#486842"
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2203,7 +2203,7 @@ function ShopGate({
   }, "📋 Copy đường dẫn vào quán"), err && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11.5,
-      color: "#C1432A"
+      color: "#A83E28"
     }
   }, err), /*#__PURE__*/React.createElement("button", {
     onClick: () => onActivate(createdCode),
@@ -2313,8 +2313,8 @@ function SalesChannels({
   const cardStyle = active => ({
     flex: "1 1 160px",
     textAlign: "left",
-    background: active ? "#F6DCD3" : "#fff",
-    border: `1px solid ${active ? "#C1432A" : "#D8CBB8"}`,
+    background: active ? "#FFDAD3" : "#fff",
+    border: `1px solid ${active ? "#A83E28" : "#D9C9B4"}`,
     borderRadius: 12,
     padding: 14,
     cursor: "pointer"
@@ -2508,8 +2508,8 @@ function SalesChannels({
   }, "⬇ Tải ảnh QR"), /*#__PURE__*/React.createElement("button", {
     onClick: copyLink,
     style: {
-      background: copied ? "#1F6E52" : "#fff",
-      border: `1px solid ${copied ? "#1F6E52" : LINE}`,
+      background: copied ? "#486842" : "#fff",
+      border: `1px solid ${copied ? "#486842" : LINE}`,
       borderRadius: 8,
       padding: "10px 16px",
       color: copied ? "#fff" : INK,
@@ -2540,7 +2540,7 @@ function TableReservation({
     width: "100%",
     padding: "12px 14px",
     borderRadius: 10,
-    border: "1px solid #D8CBB8",
+    border: "1px solid #D9C9B4",
     fontSize: 14,
     marginBottom: 10
   };
@@ -2578,7 +2578,7 @@ function TableReservation({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FAF6EE",
+        background: "#FFF9ED",
         padding: 20
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -2586,7 +2586,7 @@ function TableReservation({
         maxWidth: 360,
         textAlign: "center",
         background: "#fff",
-        border: "1px solid #D8CBB8",
+        border: "1px solid #D9C9B4",
         borderRadius: 16,
         padding: "32px 24px"
       }
@@ -2599,13 +2599,13 @@ function TableReservation({
       style: {
         fontSize: 17,
         fontWeight: 700,
-        color: "#241C15",
+        color: "#361E14",
         marginBottom: 8
       }
     }, "Đã gửi yêu cầu đặt bàn!"), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 13,
-        color: "#8A7A6B",
+        color: "#7D6E63",
         lineHeight: 1.6
       }
     }, "Quán sẽ liên hệ xác nhận qua số điện thoại bạn để lại."), /*#__PURE__*/React.createElement("button", {
@@ -2614,7 +2614,7 @@ function TableReservation({
         marginTop: 16,
         background: "none",
         border: "none",
-        color: "#8A7A6B",
+        color: "#7D6E63",
         fontSize: 13,
         textDecoration: "underline"
       }
@@ -2623,7 +2623,7 @@ function TableReservation({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FAF6EE",
+      background: "#FFF9ED",
       padding: isMobile ? 16 : 24,
       display: "flex",
       justifyContent: "center"
@@ -2641,20 +2641,20 @@ function TableReservation({
     }
   }, /*#__PURE__*/React.createElement(NoodleFlourish, {
     width: 100,
-    color: "#8A7A6B"
+    color: "#7D6E63"
   })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 20,
       fontWeight: 800,
-      color: "#241C15",
+      color: "#361E14",
       marginBottom: 4,
       textAlign: "center"
     }
   }, "Đặt bàn — ", shopName || "Quán của bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: "#8A7A6B",
+      color: "#7D6E63",
       marginBottom: 18
     }
   }, "Điền thông tin để giữ bàn trước"), activeBranches.length > 1 && /*#__PURE__*/React.createElement("select", {
@@ -2708,7 +2708,7 @@ function TableReservation({
     }
   }), err && /*#__PURE__*/React.createElement("div", {
     style: {
-      color: "#C1432A",
+      color: "#A83E28",
       fontSize: 12.5,
       marginBottom: 10
     }
@@ -2717,7 +2717,7 @@ function TableReservation({
     disabled: busy,
     style: {
       width: "100%",
-      background: "linear-gradient(135deg,#C1432A,#A5341F)",
+      background: "linear-gradient(135deg,#A83E28,#A5341F)",
       border: "none",
       borderRadius: 10,
       padding: "13px 20px",
@@ -2732,7 +2732,7 @@ function TableReservation({
       width: "100%",
       background: "none",
       border: "none",
-      color: "#8A7A6B",
+      color: "#7D6E63",
       fontSize: 13,
       marginTop: 10,
       textDecoration: "underline"
@@ -2755,7 +2755,7 @@ function ShopBlockedScreen({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#FAF6EE",
+      background: "#FFF9ED",
       padding: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -2763,7 +2763,7 @@ function ShopBlockedScreen({
       maxWidth: 380,
       textAlign: "center",
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 16,
       padding: "32px 24px"
     }
@@ -2776,13 +2776,13 @@ function ShopBlockedScreen({
     style: {
       fontSize: 17,
       fontWeight: 700,
-      color: "#241C15",
+      color: "#361E14",
       marginBottom: 8
     }
   }, title), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: "#8A7A6B",
+      color: "#7D6E63",
       lineHeight: 1.6
     }
   }, desc)));
@@ -2874,7 +2874,7 @@ function AdminPanel() {
   const inputStyle = {
     padding: "12px 14px",
     borderRadius: 10,
-    border: "1px solid #D8CBB8",
+    border: "1px solid #D9C9B4",
     fontSize: 14
   };
   if (!authed) {
@@ -2884,7 +2884,7 @@ function AdminPanel() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FAF6EE",
+        background: "#FFF9ED",
         padding: 20
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -2894,7 +2894,7 @@ function AdminPanel() {
         display: "grid",
         gap: 12,
         background: "#fff",
-        border: "1px solid #D8CBB8",
+        border: "1px solid #D9C9B4",
         borderRadius: 14,
         padding: 22
       }
@@ -2902,7 +2902,7 @@ function AdminPanel() {
       style: {
         fontSize: 16,
         fontWeight: 700,
-        color: "#241C15"
+        color: "#361E14"
       }
     }, "Quản trị hệ thống"), /*#__PURE__*/React.createElement("input", {
       type: "password",
@@ -2913,14 +2913,14 @@ function AdminPanel() {
       style: inputStyle
     }), err && /*#__PURE__*/React.createElement("div", {
       style: {
-        color: "#C1432A",
+        color: "#A83E28",
         fontSize: 12.5
       }
     }, err), /*#__PURE__*/React.createElement("button", {
       onClick: login,
       disabled: busy || !password,
       style: {
-        background: "#C1432A",
+        background: "#A83E28",
         border: "none",
         borderRadius: 10,
         padding: "13px 20px",
@@ -2935,7 +2935,7 @@ function AdminPanel() {
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FAF6EE",
+      background: "#FFF9ED",
       padding: 24
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -2947,13 +2947,13 @@ function AdminPanel() {
     }
   }, /*#__PURE__*/React.createElement(StampLogo, {
     size: 36,
-    color: "#C1432A",
+    color: "#A83E28",
     letter: "A"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 18,
       fontWeight: 700,
-      color: "#241C15"
+      color: "#361E14"
     }
   }, "Quản trị hệ thống")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2967,7 +2967,7 @@ function AdminPanel() {
     key: label,
     style: {
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 10,
       padding: "10px 12px"
     }
@@ -2975,12 +2975,12 @@ function AdminPanel() {
     style: {
       fontSize: 20,
       fontWeight: 800,
-      color: "#241C15"
+      color: "#361E14"
     }
   }, value), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, label)))), /*#__PURE__*/React.createElement("input", {
     placeholder: "Tìm theo tên quán, mã quán hoặc SĐT...",
@@ -3003,9 +3003,9 @@ function AdminPanel() {
     key: key,
     onClick: () => setTab(key),
     style: {
-      background: tab === key ? "#C1432A" : "#fff",
-      color: tab === key ? "#fff" : "#241C15",
-      border: "1px solid #D8CBB8",
+      background: tab === key ? "#A83E28" : "#fff",
+      color: tab === key ? "#fff" : "#361E14",
+      border: "1px solid #D9C9B4",
       borderRadius: 999,
       padding: "6px 14px",
       fontSize: 12.5,
@@ -3013,7 +3013,7 @@ function AdminPanel() {
     }
   }, label, " (", counts[key] !== undefined ? counts[key] : shops.filter(s => s.status === key).length, ")"))), err && /*#__PURE__*/React.createElement("div", {
     style: {
-      color: "#C1432A",
+      color: "#A83E28",
       fontSize: 12.5,
       marginBottom: 12
     }
@@ -3025,13 +3025,13 @@ function AdminPanel() {
   }, visibleShops.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, "Không có quán nào khớp."), visibleShops.map(s => /*#__PURE__*/React.createElement("div", {
     key: s.id,
     style: {
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 12,
       padding: 16,
       display: "grid",
@@ -3046,24 +3046,24 @@ function AdminPanel() {
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontWeight: 700,
-      color: "#241C15",
+      color: "#361E14",
       fontSize: 14.5
     }
   }, s.name), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, statusLabel[s.status] || s.status)), /*#__PURE__*/React.createElement("div", {
     className: "mono",
     style: {
       fontSize: 12,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, "Mã: ", s.id), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
-      color: "#3A2818"
+      color: "#57423D"
     }
   }, "Người đại diện: ", s.representative_name || "—", " · CCCD: ", s.national_id || "—", " · SĐT: ", s.phone || "—"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3076,7 +3076,7 @@ function AdminPanel() {
     disabled: busy,
     onClick: () => doAction("approve", s.id),
     style: {
-      background: "#1F6E52",
+      background: "#486842",
       border: "none",
       borderRadius: 8,
       padding: "8px 14px",
@@ -3089,10 +3089,10 @@ function AdminPanel() {
     onClick: () => doAction("reject", s.id),
     style: {
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 8,
       padding: "8px 14px",
-      color: "#241C15",
+      color: "#361E14",
       fontSize: 12.5,
       fontWeight: 600
     }
@@ -3101,10 +3101,10 @@ function AdminPanel() {
     onClick: () => doAction("suspend", s.id),
     style: {
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 8,
       padding: "8px 14px",
-      color: "#241C15",
+      color: "#361E14",
       fontSize: 12.5,
       fontWeight: 600
     }
@@ -3112,7 +3112,7 @@ function AdminPanel() {
     disabled: busy,
     onClick: () => doAction("reactivate", s.id),
     style: {
-      background: "#1F6E52",
+      background: "#486842",
       border: "none",
       borderRadius: 8,
       padding: "8px 14px",
@@ -3129,10 +3129,10 @@ function AdminPanel() {
     },
     style: {
       background: "#fff",
-      border: "1px solid #C1432A",
+      border: "1px solid #A83E28",
       borderRadius: 8,
       padding: "8px 14px",
-      color: "#C1432A",
+      color: "#A83E28",
       fontSize: 12.5,
       fontWeight: 600
     }
@@ -3140,8 +3140,8 @@ function AdminPanel() {
     style: {
       marginTop: 8,
       padding: 12,
-      background: "#F6DCD3",
-      border: "1px solid #C1432A",
+      background: "#FFDAD3",
+      border: "1px solid #A83E28",
       borderRadius: 8,
       display: "grid",
       gap: 8
@@ -3149,7 +3149,7 @@ function AdminPanel() {
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
-      color: "#241C15",
+      color: "#361E14",
       fontWeight: 600
     }
   }, "Xóa vĩnh viễn quán \"", s.name, "\"? Nhập lại mật khẩu quản trị để xác nhận:"), /*#__PURE__*/React.createElement("input", {
@@ -3171,7 +3171,7 @@ function AdminPanel() {
     disabled: busy,
     onClick: () => confirmDeleteShop(s.id),
     style: {
-      background: "#C1432A",
+      background: "#A83E28",
       border: "none",
       borderRadius: 8,
       padding: "8px 14px",
@@ -3186,10 +3186,10 @@ function AdminPanel() {
     },
     style: {
       background: "#fff",
-      border: "1px solid #D8CBB8",
+      border: "1px solid #D9C9B4",
       borderRadius: 8,
       padding: "8px 14px",
-      color: "#241C15",
+      color: "#361E14",
       fontSize: 12.5,
       fontWeight: 600
     }
@@ -3203,7 +3203,7 @@ function DarkShell({
     style: {
       fontFamily: "'Inter', sans-serif",
       minHeight: "100vh",
-      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FAF6EE 55%, #F3EEE0 100%)",
+      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FFF9ED 55%, #F3EBD9 100%)",
       color: INK,
       display: "flex",
       flexDirection: "column",
@@ -3353,7 +3353,7 @@ function StatusDot({
       position: "absolute",
       inset: 0,
       borderRadius: "50%",
-      background: "#1F6E52",
+      background: "#486842",
       animation: "bbxPulse 1.6s ease-out infinite"
     }
   }), /*#__PURE__*/React.createElement("span", {
@@ -3362,7 +3362,7 @@ function StatusDot({
       width: size,
       height: size,
       borderRadius: "50%",
-      background: isOpen ? "#1F6E52" : "#6B7280"
+      background: isOpen ? "#486842" : "#6B7280"
     }
   }));
 }
@@ -3868,7 +3868,7 @@ function Sidebar({
       width: 216,
       flexShrink: 0,
       background: INK,
-      color: "#F3EEE0",
+      color: "#F3EBD9",
       minHeight: "100vh",
       padding: "20px 14px",
       position: "sticky",
@@ -3897,7 +3897,7 @@ function Sidebar({
     }
   }, /*#__PURE__*/React.createElement(Store, {
     size: 16,
-    color: "#F3EEE0"
+    color: "#F3EBD9"
   })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
@@ -3924,7 +3924,7 @@ function Sidebar({
         border: "none",
         background: active ? "rgba(226,94,62,0.35)" : "transparent",
         borderLeft: active ? `3px solid ${JADE}` : "3px solid transparent",
-        color: active ? "#FFFFFF" : "#D8CBB8",
+        color: active ? "#FFFFFF" : "#D9C9B4",
         fontSize: 13.5,
         fontWeight: active ? 600 : 500,
         textAlign: "left"
@@ -3982,7 +3982,7 @@ function Sidebar({
     style: {
       background: "none",
       border: "none",
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, /*#__PURE__*/React.createElement(LogOut, {
     size: 14
@@ -4111,7 +4111,7 @@ function BottomNav({
         border: "none",
         padding: "6px 4px",
         flex: 1,
-        color: active ? "#FFFFFF" : "#8A7A6B",
+        color: active ? "#FFFFFF" : "#7D6E63",
         position: "relative"
       }
     }, /*#__PURE__*/React.createElement(Icon, {
@@ -4151,7 +4151,7 @@ function BottomNav({
       border: "none",
       padding: "6px 4px",
       flex: 1,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, /*#__PURE__*/React.createElement(MoreHorizontal, {
     size: 19
@@ -4221,7 +4221,7 @@ function TopBar({
       gap: 4,
       fontSize: 11,
       color: RUST,
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       padding: "5px 8px",
       borderRadius: 7,
       fontWeight: 600
@@ -4300,16 +4300,16 @@ function ReceiptCanvasActions({
     canvas.width = width;
     canvas.height = headerH + itemsH + footerH;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FAF6EE";
+    ctx.fillStyle = "#FFF9ED";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#241C15";
+    ctx.fillStyle = "#361E14";
     ctx.textAlign = "center";
     ctx.font = "bold 17px sans-serif";
     ctx.fillText(branch, width / 2, 30);
     ctx.font = "12px sans-serif";
-    ctx.fillStyle = "#8A7A6B";
+    ctx.fillStyle = "#7D6E63";
     ctx.fillText(new Date(order.createdAt).toLocaleString("vi-VN"), width / 2, 50);
-    ctx.strokeStyle = "#D8CBB8";
+    ctx.strokeStyle = "#D9C9B4";
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.moveTo(20, 66);
@@ -4318,7 +4318,7 @@ function ReceiptCanvasActions({
     ctx.setLineDash([]);
     let y = 88;
     ctx.font = "13px monospace";
-    ctx.fillStyle = "#241C15";
+    ctx.fillStyle = "#361E14";
     order.items.forEach(it => {
       ctx.textAlign = "left";
       ctx.fillText(`${it.name} x${it.qty}`, 20, y);
@@ -4326,7 +4326,7 @@ function ReceiptCanvasActions({
       ctx.fillText(fmt(it.price * it.qty), width - 20, y);
       y += lineH;
     });
-    ctx.strokeStyle = "#D8CBB8";
+    ctx.strokeStyle = "#D9C9B4";
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.moveTo(20, y + 4);
@@ -4353,12 +4353,12 @@ function ReceiptCanvasActions({
     ctx.textAlign = "right";
     ctx.fillStyle = "#1E4A41";
     ctx.fillText(fmt(order.total), width - 20, y);
-    ctx.fillStyle = "#241C15";
+    ctx.fillStyle = "#361E14";
     ctx.font = "11.5px sans-serif";
     y += 22;
     const pm = PAYMENT_METHODS.find(p => p.key === order.paymentMethod);
     ctx.textAlign = "center";
-    ctx.fillStyle = "#8A7A6B";
+    ctx.fillStyle = "#7D6E63";
     ctx.fillText(`Thanh toán: ${pm ? pm.label : ""}`, width / 2, y);
     y += 20;
     ctx.fillText("Cảm ơn quý khách!", width / 2, y);
@@ -4706,7 +4706,7 @@ function POS({
         padding: "7px 2px",
         borderRadius: 8,
         border: `1px solid ${active ? JADE : LINE}`,
-        background: active ? "#F6DCD3" : "#fff",
+        background: active ? "#FFDAD3" : "#fff",
         color: active ? JADE_DARK : MUTED
       }
     }, /*#__PURE__*/React.createElement(Icon, {
@@ -4816,7 +4816,7 @@ function POS({
     }
   }, lowStock.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       border: "1px solid #F3B7B0",
       borderRadius: 12,
       padding: isMobile ? "12px 14px" : "14px 18px",
@@ -4883,7 +4883,7 @@ function POS({
     className: "mono",
     style: {
       fontSize: 11.5,
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       color: JADE_DARK,
       borderRadius: 20,
       padding: "3px 10px",
@@ -4996,7 +4996,7 @@ function POS({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
-      color: "#F3EEE0",
+      color: "#F3EBD9",
       padding: "14px 18px"
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -5008,7 +5008,7 @@ function POS({
   }, "Hoá đơn"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#D8CBB8"
+      color: "#D9C9B4"
     }
   }, branch)), CartBody), isMobile && /*#__PURE__*/React.createElement(React.Fragment, null, !sheetOpen && /*#__PURE__*/React.createElement("button", {
     onClick: () => setSheetOpen(true),
@@ -5078,7 +5078,7 @@ function POS({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
-      color: "#F3EEE0",
+      color: "#F3EBD9",
       padding: "12px 16px",
       borderRadius: "16px 16px 0 0",
       display: "flex",
@@ -5094,7 +5094,7 @@ function POS({
   }, "Hoá đơn"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#D8CBB8"
+      color: "#D9C9B4"
     }
   }, branch)), /*#__PURE__*/React.createElement("button", {
     onClick: () => setSheetOpen(false),
@@ -5110,7 +5110,7 @@ function POS({
     }
   }, /*#__PURE__*/React.createElement(ChevronDown, {
     size: 16,
-    color: "#F3EEE0"
+    color: "#F3EBD9"
   }))), CartBody))));
 }
 function emptyProduct() {
@@ -5638,7 +5638,7 @@ function ProductCostEditor({
       justifyContent: "space-between",
       alignItems: "center",
       padding: "8px 10px",
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       borderRadius: 8,
       marginTop: 6
     }
@@ -6127,7 +6127,7 @@ function Products({
         fontWeight: 600,
         padding: "1px 7px",
         borderRadius: 20,
-        background: p.category === "food" ? "#F3EEE0" : SAGE_BG,
+        background: p.category === "food" ? "#F3EBD9" : SAGE_BG,
         color: p.category === "food" ? AMBER_DARK : SAGE_DARK
       }
     }, p.category === "food" ? "Đồ ăn/uống" : "Handmade"), /*#__PURE__*/React.createElement("span", {
@@ -6172,7 +6172,7 @@ function Products({
     })), /*#__PURE__*/React.createElement("button", {
       onClick: () => setConfirmDelete(p.id),
       style: {
-        background: "#F6DCD3",
+        background: "#FFDAD3",
         border: "none",
         borderRadius: 7,
         width: 30,
@@ -6366,7 +6366,7 @@ function Inventory({
     }
   }, "Tổng tồn kho cộng dồn từ ", branches.length, " chi nhánh — chỉ để xem, muốn chỉnh số lượng vào từng chi nhánh riêng."), lowStock.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       border: "1px solid #F3B7B0",
       borderRadius: 12,
       padding: "12px 14px",
@@ -6747,7 +6747,7 @@ function StockReceiptHistory({
       fontSize: 10.5,
       fontWeight: 600,
       color: JADE_DARK,
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       borderRadius: 20,
       padding: "2px 8px"
     }
@@ -7202,7 +7202,7 @@ function Expenses({
   }))))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16,
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       borderRadius: 12,
       padding: "14px 16px",
       display: "flex",
@@ -7290,7 +7290,7 @@ function Costs({
       gap: 6,
       padding: "10px 0",
       borderRadius: 8,
-      border: `1px solid ${shopStatus?.isOpen ? "#1F6E52" : LINE}`,
+      border: `1px solid ${shopStatus?.isOpen ? "#486842" : LINE}`,
       background: shopStatus?.isOpen ? "#EFFAF3" : "#fff",
       color: shopStatus?.isOpen ? "#166534" : MUTED,
       fontSize: 13,
@@ -7313,7 +7313,7 @@ function Costs({
       padding: "10px 0",
       borderRadius: 8,
       border: `1px solid ${!shopStatus?.isOpen ? RUST : LINE}`,
-      background: !shopStatus?.isOpen ? "#F6DCD3" : "#fff",
+      background: !shopStatus?.isOpen ? "#FFDAD3" : "#fff",
       color: !shopStatus?.isOpen ? RUST : MUTED,
       fontSize: 13,
       fontWeight: 600
@@ -7698,7 +7698,7 @@ function Staff({
   }, [b.address, b.phone].filter(Boolean).join(" · ") || "Chưa có địa chỉ/SĐT", " · PIN ", b.pin || "chưa đặt")), /*#__PURE__*/React.createElement("button", {
     onClick: () => toggleBranchActive(b.name),
     style: {
-      background: b.active === false ? "#F3EEE0" : "#F6DCD3",
+      background: b.active === false ? "#F3EBD9" : "#FFDAD3",
       border: "none",
       borderRadius: 7,
       padding: "6px 10px",
@@ -7987,7 +7987,7 @@ function Staff({
       width: 32,
       height: 32,
       borderRadius: "50%",
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       color: JADE_DARK,
       display: "flex",
       alignItems: "center",
@@ -8841,7 +8841,7 @@ function CustomerOrder({
         width: 64,
         height: 64,
         borderRadius: "50%",
-        background: "#F6DCD3",
+        background: "#FFDAD3",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -8956,7 +8956,7 @@ function CustomerOrder({
       padding: "10px 12px",
       borderRadius: 8,
       border: `1px solid ${paymentRequested ? LINE : JADE}`,
-      background: paymentRequested ? "#F3EEE0" : "#EFFAF3",
+      background: paymentRequested ? "#F3EBD9" : "#EFFAF3",
       color: paymentRequested ? MUTED : JADE_DARK,
       fontSize: 12.5,
       fontWeight: 700
@@ -9118,7 +9118,7 @@ function CustomerOrder({
         padding: "8px 2px",
         borderRadius: 8,
         border: `1px solid ${active ? JADE : LINE}`,
-        background: active ? "#F6DCD3" : "#fff",
+        background: active ? "#FFDAD3" : "#fff",
         color: active ? JADE_DARK : MUTED
       }
     }, /*#__PURE__*/React.createElement(Icon, {
@@ -9134,7 +9134,7 @@ function CustomerOrder({
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      background: "#F3EEE0",
+      background: "#F3EBD9",
       border: `1px solid ${LINE}`,
       borderRadius: 8,
       padding: "10px 12px",
@@ -9147,7 +9147,7 @@ function CustomerOrder({
       display: "flex",
       alignItems: "flex-start",
       gap: 6,
-      background: "#FAF6EE",
+      background: "#FFF9ED",
       border: "1px solid #FDBA74",
       borderRadius: 8,
       padding: "8px 10px",
@@ -9207,7 +9207,7 @@ function CustomerOrder({
   }, /*#__PURE__*/React.createElement("style", null, `* { box-sizing: border-box; } button{font-family:inherit;cursor:pointer;} input,select{font-family:inherit;} .mono{font-family:'JetBrains Mono',monospace;} .disp{font-family:'Space Grotesk',sans-serif;}`), /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
-      color: "#F3EEE0",
+      color: "#F3EBD9",
       padding: isMobile ? "14px 14px" : "16px 32px",
       display: "flex",
       alignItems: "center",
@@ -9228,7 +9228,7 @@ function CustomerOrder({
     }
   }, /*#__PURE__*/React.createElement(ArrowLeft, {
     size: 16,
-    color: "#F3EEE0"
+    color: "#F3EBD9"
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
@@ -9252,7 +9252,7 @@ function CustomerOrder({
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, dineIn ? "Gọi món tại bàn" : "Đặt hàng")), activeBranches.length > 1 ? /*#__PURE__*/React.createElement("div", {
     style: {
@@ -9288,7 +9288,7 @@ function CustomerOrder({
   })) : /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
-      color: "#8A7A6B",
+      color: "#7D6E63",
       flexShrink: 0
     }
   }, branch)), /*#__PURE__*/React.createElement("div", {
@@ -9297,7 +9297,74 @@ function CustomerOrder({
       maxWidth: 960,
       margin: "0 auto"
     }
-  }, favorites.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: "#F3EBD9",
+      border: `1px solid ${LINE}`,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 14,
+      position: "relative",
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "3px 10px",
+      borderRadius: 8,
+      background: shopStatus && !shopStatus.isOpen ? "rgba(178,123,43,0.14)" : "rgba(72,104,66,0.14)",
+      color: shopStatus && !shopStatus.isOpen ? AMBER_DARK : SAGE_DARK,
+      fontSize: 10.5,
+      fontWeight: 700,
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+      transform: "rotate(-1deg)",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      background: shopStatus && !shopStatus.isOpen ? AMBER_DARK : SAGE_DARK
+    }
+  }), shopStatus && !shopStatus.isOpen ? "Tạm nghỉ" : "Đang mở cửa"), /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 20,
+      color: JADE,
+      marginBottom: 6
+    }
+  }, shopName || "Quán của bạn"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      fontSize: 12.5,
+      color: MUTED
+    }
+  }, dineIn && tableOrRecipient.trim() && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: INK
+    }
+  }, "Bàn ", tableOrRecipient.trim()), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: LINE
+    }
+  }, "•")), /*#__PURE__*/React.createElement("span", null, branch)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      right: 10,
+      bottom: 8,
+      opacity: 0.25
+    }
+  }, /*#__PURE__*/React.createElement(NoodleFlourish, {
+    width: 90,
+    color: JADE
+  }))), favorites.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       background: CARD,
       border: `1px solid ${LINE}`,
@@ -9321,7 +9388,7 @@ function CustomerOrder({
     className: "mono",
     style: {
       fontSize: 11.5,
-      background: "#F6DCD3",
+      background: "#FFDAD3",
       color: JADE_DARK,
       borderRadius: 20,
       padding: "3px 10px",
@@ -9501,7 +9568,7 @@ function CustomerOrder({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
-      color: "#F3EEE0",
+      color: "#F3EBD9",
       padding: "12px 16px",
       borderRadius: "16px 16px 0 0",
       display: "flex",
@@ -9517,7 +9584,7 @@ function CustomerOrder({
   }, "Giỏ hàng"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: "#8A7A6B"
+      color: "#7D6E63"
     }
   }, branch)), /*#__PURE__*/React.createElement("button", {
     onClick: () => setSheetOpen(false),
@@ -9533,7 +9600,7 @@ function CustomerOrder({
     }
   }, /*#__PURE__*/React.createElement(ChevronDown, {
     size: 16,
-    color: "#F3EEE0"
+    color: "#F3EBD9"
   }))), CartBody)));
 }
 
