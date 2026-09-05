@@ -70,7 +70,8 @@ async function drawQrCard({
   topText,
   bottomText,
   table,
-  showLogo
+  showLogo,
+  logoUrl
 }) {
   const W = 640;
   const qrSize = 400;
@@ -116,7 +117,7 @@ async function drawQrCard({
   ctx.drawImage(qrCanvas, qrX, y, qrSize, qrSize);
   if (showLogo) {
     try {
-      const logoImg = await loadImg(LOGO_URL);
+      const logoImg = await loadImg(logoUrl || LOGO_URL);
       const logoBox = qrSize * 0.26;
       const lx = qrX + (qrSize - logoBox) / 2;
       const ly = y + (qrSize - logoBox) / 2;
@@ -192,6 +193,7 @@ function QrCardPreview({
   bottomText,
   table,
   showLogo,
+  logoUrl,
   width = 260
 }) {
   const [dataUrl, setDataUrl] = useState(null);
@@ -202,14 +204,15 @@ function QrCardPreview({
       topText,
       bottomText,
       table,
-      showLogo
+      showLogo,
+      logoUrl
     }).then(canvas => {
       if (!cancelled) setDataUrl(canvas.toDataURL("image/png"));
     });
     return () => {
       cancelled = true;
     };
-  }, [url, topText, bottomText, table, showLogo]);
+  }, [url, topText, bottomText, table, showLogo, logoUrl]);
   if (!dataUrl) return /*#__PURE__*/React.createElement("div", {
     style: {
       width,
@@ -1605,6 +1608,7 @@ function useOnline() {
 }
 function App() {
   const [shopName, setShopName] = useState("");
+  const [shopLogoUrl, setShopLogoUrl] = useState(null);
   const [products, setProducts] = useState(SEED_PRODUCTS);
   const [branches, setBranches] = useState(SEED_BRANCHES);
   const [staff, setStaff] = useState(SEED_STAFF);
@@ -1659,7 +1663,7 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes] = await Promise.all([sb.from("shops").select("name,status").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes] = await Promise.all([sb.from("shops").select("name,status,logo_url").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
@@ -1746,6 +1750,7 @@ function App() {
         });
         setOrders((o.data || []).map(orderFromDb));
         setShopName(shopRes.data ? shopRes.data.name : "");
+        setShopLogoUrl(shopRes.data ? shopRes.data.logo_url : null);
         setSaveErr(false);
       } catch (e) {
         console.error("load error", e);
@@ -1937,7 +1942,8 @@ function App() {
       isMobile: isMobile,
       products: products,
       shopStatus: shopStatus,
-      shopName: shopName
+      shopName: shopName,
+      shopLogoUrl: shopLogoUrl
     });
   }
   return /*#__PURE__*/React.createElement("div", {
@@ -2036,7 +2042,10 @@ function App() {
     bankInfo: bankInfo,
     setBankInfo: setBankInfo,
     shopStatus: shopStatus,
-    setShopStatus: setShopStatus
+    setShopStatus: setShopStatus,
+    shopId: shopId,
+    shopLogoUrl: shopLogoUrl,
+    setShopLogoUrl: setShopLogoUrl
   }), visibleTab === "staff" && /*#__PURE__*/React.createElement(Staff, {
     staff: staff,
     setStaff: setStaff,
@@ -2048,7 +2057,8 @@ function App() {
   }), visibleTab === "channels" && /*#__PURE__*/React.createElement(SalesChannels, {
     branches: branches,
     shopName: shopName,
-    isMobile: isMobile
+    isMobile: isMobile,
+    shopLogoUrl: shopLogoUrl
   }), visibleTab === "reports" && /*#__PURE__*/React.createElement(Reports, {
     orders: orders,
     products: products,
@@ -2452,7 +2462,8 @@ function ShopGate({
 function SalesChannels({
   branches,
   shopName,
-  isMobile
+  isMobile,
+  shopLogoUrl
 }) {
   const activeBranches = branches.filter(b => b.active !== false);
   const [channel, setChannel] = useState("dine-in"); // dine-in | order | reserve
@@ -2522,7 +2533,8 @@ function SalesChannels({
       topText,
       bottomText,
       table: channel === "dine-in" ? table.trim() : "",
-      showLogo
+      showLogo,
+      logoUrl: shopLogoUrl
     }).then(canvas => {
       const dataUrl = canvas.toDataURL("image/png");
       const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
@@ -2647,6 +2659,7 @@ function SalesChannels({
     bottomText: bottomText,
     table: channel === "dine-in" ? table.trim() : "",
     showLogo: showLogo,
+    logoUrl: shopLogoUrl,
     width: 230
   })), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3594,7 +3607,8 @@ function StartScreen({
   isMobile,
   products,
   shopStatus,
-  shopName
+  shopName,
+  shopLogoUrl
 }) {
   const displayName = shopName || "Quán của bạn";
   const initials = displayName.trim().split(/\s+/).slice(-2).map(w => w[0]).join("").toUpperCase().slice(0, 2);
@@ -3637,9 +3651,18 @@ function StartScreen({
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 14,
-      padding: 20
+      padding: shopLogoUrl ? 0 : 20,
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("span", {
+  }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
+    src: shopLogoUrl,
+    alt: displayName,
+    style: {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
+    }
+  }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
       fontSize: 56,
@@ -7454,11 +7477,43 @@ function Costs({
   bankInfo,
   setBankInfo,
   shopStatus,
-  setShopStatus
+  setShopStatus,
+  shopId,
+  shopLogoUrl,
+  setShopLogoUrl
 }) {
   const [bankForm, setBankForm] = useState(bankInfo);
   const [saved, setSaved] = useState(false);
   const [reopenInput, setReopenInput] = useState(shopStatus?.reopenDate || "");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoErr, setLogoErr] = useState("");
+  const uploadLogo = async e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setLogoErr("");
+    setLogoUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${shopId}/logo.${ext}`;
+      const { error: upErr } = await sb.storage.from("shop-logos").upload(path, file, {
+        upsert: true,
+        cacheControl: "3600"
+      });
+      if (upErr) throw upErr;
+      const { data: pub } = sb.storage.from("shop-logos").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { error: updErr } = await sb.from("shops").update({
+        logo_url: url
+      }).eq("id", shopId);
+      if (updErr) throw updErr;
+      setShopLogoUrl(url);
+    } catch (err) {
+      console.error(err);
+      setLogoErr("Không tải lên được, thử lại sau.");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
   useEffect(() => {
     setBankForm(bankInfo);
   }, [bankInfo]);
@@ -7472,6 +7527,78 @@ function Costs({
   };
   const previewUrl = vietQrImageUrl(bankForm, 10000, "Xem thu");
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Logo quán"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: MUTED,
+      marginBottom: 12
+    }
+  }, "Hiện ở trang chào và gắn vào giữa mã QR. Nên dùng ảnh vuông."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 72,
+      height: 72,
+      borderRadius: 16,
+      border: `2px solid ${JADE}`,
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: PAPER,
+      flexShrink: 0
+    }
+  }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
+    src: shopLogoUrl,
+    alt: "Logo",
+    style: {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
+    }
+  }) : /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      textAlign: "center"
+    }
+  }, "Chưa có logo")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: "inline-block",
+      background: JADE_GRADIENT,
+      color: "#fff",
+      borderRadius: 8,
+      padding: "9px 16px",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, logoUploading ? "Đang tải lên..." : shopLogoUrl ? "Đổi logo" : "Tải logo lên", /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: uploadLogo,
+    disabled: logoUploading,
+    style: {
+      display: "none"
+    }
+  })), logoErr && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: RUST,
+      fontSize: 11.5,
+      marginTop: 6
+    }
+  }, logoErr))), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 16,
