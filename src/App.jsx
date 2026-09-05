@@ -3449,6 +3449,15 @@ function StartScreen({
     }
   }, isOpen ? "Chào mừng bạn" : reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ"), /*#__PURE__*/React.createElement("div", {
     style: {
+      display: "flex",
+      justifyContent: "center",
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement(NoodleFlourish, {
+    width: 130,
+    color: MUTED
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
       width: isMobile ? "100%" : 320
     }
   }, /*#__PURE__*/React.createElement("button", {
