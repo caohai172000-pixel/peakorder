@@ -494,6 +494,81 @@ function makeIcon(glyph) {
     }, glyph);
   };
 }
+// ---- Minh họa nét vẽ đơn sắc (line-art), phong cách tham khảo từ bao bì ----
+function NoodleFlourish({
+  width = 160,
+  color = "#8A7A6B",
+  style
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: width,
+    height: width * 0.4,
+    viewBox: "0 0 200 80",
+    fill: "none",
+    style: style
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M10 20 C 40 5, 55 45, 85 25 S 130 5, 150 30 S 185 55, 190 40",
+    stroke: color,
+    strokeWidth: 2,
+    strokeLinecap: "round"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M15 35 C 45 20, 60 60, 90 40 S 135 20, 155 45 S 180 65, 188 55",
+    stroke: color,
+    strokeWidth: 1.6,
+    strokeLinecap: "round",
+    opacity: 0.6
+  }));
+}
+function EmptyBowlArt({
+  size = 96,
+  color = "#8A7A6B"
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 100 100",
+    fill: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M20 45 Q50 42 80 45 Q78 72 50 74 Q22 72 20 45 Z",
+    stroke: color,
+    strokeWidth: 2.2,
+    strokeLinejoin: "round"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M15 45 H85",
+    stroke: color,
+    strokeWidth: 2.2,
+    strokeLinecap: "round"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M35 30 C 40 20, 45 38, 50 26 S 60 20, 62 30",
+    stroke: color,
+    strokeWidth: 1.6,
+    strokeLinecap: "round",
+    opacity: 0.7
+  }));
+}
+function StampLogo({
+  size = 56,
+  letter = "P",
+  color = "#1F6E52"
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: size,
+      height: size,
+      border: `2px solid ${color}`,
+      borderRadius: size * 0.25,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "disp",
+    style: {
+      fontSize: size * 0.46,
+      color
+    }
+  }, letter));
+}
 const LayoutDashboard = makeIcon("▦");
 const ShoppingCart = makeIcon("🛒");
 const Package = makeIcon("📦");
@@ -1849,22 +1924,14 @@ function ShopGate({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 56,
-      height: 56,
-      margin: "0 auto 14px",
-      border: `2px solid ${JADE_DARK}`,
-      borderRadius: 14,
       display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      marginBottom: 14
     }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "disp",
-    style: {
-      fontSize: 26,
-      color: JADE_DARK
-    }
-  }, "P")), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(StampLogo, {
+    size: 56,
+    color: JADE_DARK
+  })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 24,
@@ -1878,9 +1945,18 @@ function ShopGate({
       fontSize: 13,
       color: MUTED,
       textAlign: "center",
+      marginBottom: 10
+    }
+  }, "Bán hàng, quản lý kho & đơn hàng — cho mọi quán"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center",
       marginBottom: 28
     }
-  }, "Bán hàng, quản lý kho & đơn hàng — cho mọi quán"), screen === "start" && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(NoodleFlourish, {
+    width: 140,
+    color: MUTED
+  })), screen === "start" && /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: 12
@@ -2248,14 +2324,24 @@ function SalesChannels({
       padding: isMobile ? 16 : 24
     }
   }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement(StampLogo, {
+    size: 34,
+    color: JADE_DARK,
+    letter: "K"
+  }), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 18,
       fontWeight: 800,
-      color: INK,
-      marginBottom: 4
+      color: INK
     }
-  }, "Kênh bán hàng"), /*#__PURE__*/React.createElement("div", {
+  }, "Kênh bán hàng")), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: MUTED,
@@ -2548,12 +2634,22 @@ function TableReservation({
       width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "center",
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement(NoodleFlourish, {
+    width: 100,
+    color: "#8A7A6B"
+  })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 20,
       fontWeight: 800,
       color: "#241C15",
-      marginBottom: 4
+      marginBottom: 4,
+      textAlign: "center"
     }
   }, "Đặt bàn — ", shopName || "Quán của bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2844,12 +2940,22 @@ function AdminPanel() {
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 18,
-      fontWeight: 700,
-      color: "#241C15",
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
       marginBottom: 16
     }
-  }, "Quản trị hệ thống"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(StampLogo, {
+    size: 36,
+    color: "#C1432A",
+    letter: "A"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#241C15"
+    }
+  }, "Quản trị hệ thống")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
@@ -4458,12 +4564,18 @@ function POS({
     }
   }, cart.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      color: MUTED,
       textAlign: "center",
       padding: "20px 0"
     }
-  }, "Chưa có sản phẩm nào"), cart.map(i => /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(EmptyBowlArt, {
+    size: 64
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: MUTED,
+      marginTop: 6
+    }
+  }, "Chưa có sản phẩm nào")), cart.map(i => /*#__PURE__*/React.createElement("div", {
     key: i.id,
     style: {
       display: "flex",
@@ -6742,10 +6854,18 @@ function Orders({
     }
   }, filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
-      color: MUTED
+      textAlign: "center",
+      padding: "24px 0"
     }
-  }, "Chưa có đơn hàng nào."), filtered.map(o => {
+  }, /*#__PURE__*/React.createElement(EmptyBowlArt, {
+    size: 72
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: MUTED,
+      marginTop: 8
+    }
+  }, "Chưa có đơn hàng nào.")), filtered.map(o => {
     const isPending = o.status === "pending";
     const pm = PAYMENT_METHODS.find(p => p.key === o.paymentMethod);
     const PmIcon = pm ? pm.icon : Banknote;
@@ -8841,12 +8961,18 @@ function CustomerOrder({
     }
   }, cart.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      color: MUTED,
       textAlign: "center",
       padding: "20px 0"
     }
-  }, "Chưa chọn món nào"), cart.map(i => /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(EmptyBowlArt, {
+    size: 64
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: MUTED,
+      marginTop: 6
+    }
+  }, "Chưa chọn món nào")), cart.map(i => /*#__PURE__*/React.createElement("div", {
     key: i.id,
     style: {
       padding: "8px 0",
