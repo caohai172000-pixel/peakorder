@@ -3589,19 +3589,10 @@ function DarkShell({
   }, topRight), children);
 }
 function ConfirmPinModal({
-  expectedPin,
   label,
   onConfirm,
   onCancel
 }) {
-  const [pin, setPin] = useState("");
-  const [err, setErr] = useState("");
-  const submit = () => {
-    if (pin === expectedPin) onConfirm();else {
-      setErr("Mã PIN không đúng");
-      setPin("");
-    }
-  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: "fixed",
@@ -3641,38 +3632,9 @@ function ConfirmPinModal({
     style: {
       fontSize: 12.5,
       color: MUTED,
-      marginBottom: 14
+      marginBottom: 18
     }
-  }, "Nhập lại mã PIN của bạn để xác nhận xoá — không thể hoàn tác."), /*#__PURE__*/React.createElement("input", {
-    autoFocus: true,
-    type: "password",
-    inputMode: "numeric",
-    maxLength: 4,
-    value: pin,
-    onChange: e => {
-      setPin(e.target.value.replace(/\D/g, ""));
-      setErr("");
-    },
-    onKeyDown: e => e.key === "Enter" && submit(),
-    placeholder: "••••",
-    style: {
-      width: "100%",
-      textAlign: "center",
-      fontSize: 26,
-      letterSpacing: 10,
-      padding: "12px 0",
-      borderRadius: 10,
-      border: `1px solid ${LINE}`,
-      marginBottom: 10,
-      fontFamily: "'Inter',sans-serif"
-    }
-  }), err && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: RUST,
-      marginBottom: 10
-    }
-  }, err), /*#__PURE__*/React.createElement("div", {
+  }, "Hành động này không thể hoàn tác. Bạn chắc chắn muốn xoá?"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8
@@ -3690,12 +3652,11 @@ function ConfirmPinModal({
       color: MUTED
     }
   }, "Huỷ"), /*#__PURE__*/React.createElement("button", {
-    onClick: submit,
-    disabled: pin.length !== 4,
+    onClick: onConfirm,
     style: {
       flex: 1,
-      background: pin.length === 4 ? RUST : LINE,
-      color: pin.length === 4 ? "#fff" : MUTED,
+      background: RUST,
+      color: "#fff",
       border: "none",
       borderRadius: 8,
       padding: "10px 0",
@@ -6286,7 +6247,6 @@ function Ingredients({
     size: 14
   }))), editing === i.id && FormFields))), confirmDelete && /*#__PURE__*/React.createElement(ConfirmPinModal, {
     label: `nguyên liệu "${ingredients.find(i => i.id === confirmDelete)?.name || ""}"`,
-    expectedPin: currentUser.pin,
     onConfirm: () => {
       remove(confirmDelete);
       setConfirmDelete(null);
@@ -6577,7 +6537,6 @@ function Products({
     }))));
   })), confirmDelete && /*#__PURE__*/React.createElement(ConfirmPinModal, {
     label: `"${products.find(p => p.id === confirmDelete)?.name || ""}"`,
-    expectedPin: currentUser.pin,
     onConfirm: () => {
       remove(confirmDelete);
       setConfirmDelete(null);
@@ -7768,7 +7727,6 @@ function Expenses({
     }
   }, fmt(total))), confirmDelete && /*#__PURE__*/React.createElement(ConfirmPinModal, {
     label: `chi phí "${fixedCosts.find(c => c.id === confirmDelete)?.name || ""}"`,
-    expectedPin: currentUser.pin,
     onConfirm: () => {
       remove(confirmDelete);
       setConfirmDelete(null);
@@ -8959,7 +8917,6 @@ function Staff({
     size: 14
   })))))), confirmDelete && /*#__PURE__*/React.createElement(ConfirmPinModal, {
     label: confirmDelete.label,
-    expectedPin: currentUser.pin,
     onConfirm: () => {
       if (confirmDelete.type === "admin") removeAdmin(confirmDelete.id);else removeEmp(confirmDelete.id);
       setConfirmDelete(null);
