@@ -1893,25 +1893,19 @@ function App() {
     };
   }, [loaded, shopId]);
   // Chỉ tải/khởi tạo dữ liệu riêng của nhân viên (chi phí, nguyên liệu, tồn
-  // kho, danh sách nhân viên) SAU KHI đăng nhập xong — vì các bảng này bị
-  // RLS chặn khi chưa đăng nhập, trước đây tưởng nhầm "chưa có dữ liệu" nên
-  // tự chèn dữ liệu mẫu đè lên dữ liệu thật.
+  // kho) SAU KHI đăng nhập xong — vì các bảng này bị RLS chặn khi chưa đăng
+  // nhập, trước đây tưởng nhầm "chưa có dữ liệu" nên tự chèn dữ liệu mẫu đè
+  // lên dữ liệu thật. Bảng "staff" KHÔNG nằm ở đây vì nó công khai (cần
+  // hiện được danh sách tài khoản Quản lý ngay trên màn đăng nhập, trước
+  // khi ai đăng nhập cả) — được tải ở effect chính phía trên.
   useEffect(() => {
     if (!shopId || !currentUser) return;
     (async () => {
       try {
-        const [f, bsRes2, igRes2, sRows] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at")]);
+        const [f, bsRes2, igRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
         let costRows = f.data || [];
         let stockRows = bsRes2.data || [];
         let ingRows = igRes2.data || [];
-        let staffRows = sRows.data || [];
-        if (staffRows.length === 0) {
-          const seedS = SEED_STAFF.map(r => ({ ...r,
-            shop_id: shopId
-          }));
-          await sb.from("staff").insert(seedS);
-          staffRows = seedS;
-        }
         if (costRows.length === 0) {
           const seedF = SEED_FIXED_COSTS.map(r => ({ ...r,
             shop_id: shopId
@@ -1936,7 +1930,6 @@ function App() {
           await sb.from("ingredients").insert(seedIg);
           ingRows = seedIg;
         }
-        setStaff(staffRows);
         setFixedCosts(costRows);
         setBranchStock(stockRows.map(branchStockFromDb));
         setIngredients(ingRows.map(ingredientFromDb));
@@ -3708,7 +3701,7 @@ function DarkShell({
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: 20,
+      padding: "16px 20px",
       position: "relative"
     }
   }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
@@ -3881,17 +3874,17 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 240,
-      height: 240,
-      borderRadius: 32,
+      width: 150,
+      height: 150,
+      borderRadius: 24,
       border: `3px solid ${JADE}`,
       background: PAPER,
       boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 18,
-      padding: shopLogoUrl ? 12 : 24,
+      marginBottom: 10,
+      padding: shopLogoUrl ? 8 : 16,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3900,13 +3893,13 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
-      borderRadius: 22,
+      borderRadius: 16,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
-      fontSize: 72,
+      fontSize: 44,
       color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
@@ -3914,12 +3907,12 @@ function StartScreen({
       display: "flex",
       alignItems: "center",
       gap: 8,
-      marginBottom: 6
+      marginBottom: 3
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
-      fontSize: 36,
+      fontSize: 22,
       fontWeight: 700,
       textAlign: "center",
       color: JADE_DARK
@@ -3928,9 +3921,9 @@ function StartScreen({
     isOpen: isOpen
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 14,
+      fontSize: 13,
       color: MUTED,
-      marginBottom: 28,
+      marginBottom: 14,
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
@@ -3989,15 +3982,15 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 16,
+      marginTop: 12,
       width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12.5,
+      fontSize: 12,
       fontWeight: 600,
       color: MUTED,
-      marginBottom: 10
+      marginBottom: 6
     }
   }, "Thực đơn nhanh"), /*#__PURE__*/React.createElement("div", {
     style: {
