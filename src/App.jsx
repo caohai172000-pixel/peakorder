@@ -569,6 +569,46 @@ function EmptyBowlArt({
     opacity: 0.7
   }));
 }
+// Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
+// (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
+const LETTER_BACKDROP_ITEMS = [
+  { ch: "P", top: "4%", left: "6%", size: 220, rot: -12 },
+  { ch: "E", top: "2%", left: "68%", size: 180, rot: 8 },
+  { ch: "A", top: "20%", left: "38%", size: 260, rot: -6 },
+  { ch: "K", top: "38%", left: "82%", size: 200, rot: 14 },
+  { ch: "O", top: "55%", left: "4%", size: 240, rot: 10 },
+  { ch: "R", top: "68%", left: "60%", size: 220, rot: -10 },
+  { ch: "D", top: "80%", left: "22%", size: 190, rot: 6 },
+  { ch: "E", top: "86%", left: "78%", size: 170, rot: -14 },
+  { ch: "R", top: "48%", left: "50%", size: 150, rot: 4 }
+];
+function LetterBackdrop({
+  color = "#EAB300"
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      overflow: "hidden",
+      zIndex: 0,
+      pointerEvents: "none"
+    }
+  }, LETTER_BACKDROP_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "disp",
+    style: {
+      position: "absolute",
+      top: it.top,
+      left: it.left,
+      fontSize: it.size,
+      color,
+      transform: `rotate(${it.rot}deg)`,
+      lineHeight: 1,
+      userSelect: "none"
+    }
+  }, it.ch)));
+}
 function StampLogo({
   size = 56,
   letter = "P",
@@ -2874,17 +2914,21 @@ function TableReservation({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FDF6D3",
-        padding: 20
+        background: "#FFC700",
+        padding: 20,
+        position: "relative",
+        overflow: "hidden"
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
       style: {
         maxWidth: 360,
         textAlign: "center",
         background: "#fff",
         border: "1px solid #D9C9B4",
         borderRadius: 16,
-        padding: "32px 24px"
+        padding: "32px 24px",
+        position: "relative",
+        zIndex: 1
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2919,15 +2963,19 @@ function TableReservation({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FDF6D3",
+      background: "#FFC700",
       padding: isMobile ? 16 : 24,
       display: "flex",
-      justifyContent: "center"
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       maxWidth: 420,
-      width: "100%"
+      width: "100%",
+      position: "relative",
+      zIndex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -3090,7 +3138,7 @@ function TableReservation({
     disabled: busy,
     style: {
       width: "100%",
-      background: "linear-gradient(135deg,#A83E28,#A5341F)",
+      background: "#A83E28",
       border: "none",
       borderRadius: 10,
       padding: "13px 20px",
@@ -3128,17 +3176,21 @@ function ShopBlockedScreen({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#FDF6D3",
-      padding: 20
+      background: "#FFC700",
+      padding: 20,
+      position: "relative",
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       maxWidth: 380,
       textAlign: "center",
       background: "#fff",
       border: "1px solid #D9C9B4",
       borderRadius: 16,
-      padding: "32px 24px"
+      padding: "32px 24px",
+      position: "relative",
+      zIndex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3580,7 +3632,7 @@ function DarkShell({
       maxWidth: "100vw",
       boxSizing: "border-box",
       overflowX: "hidden",
-      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FDF6D3 55%, #F3EBD9 100%)",
+      background: "#FFC700",
       color: INK,
       display: "flex",
       flexDirection: "column",
@@ -3589,14 +3641,24 @@ function DarkShell({
       padding: 20,
       position: "relative"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), topRight && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
       right: 16,
-      maxWidth: "calc(100% - 32px)"
+      maxWidth: "calc(100% - 32px)",
+      zIndex: 1
     }
-  }, topRight), children);
+  }, topRight), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      zIndex: 1,
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }
+  }, children));
 }
 function ConfirmPinModal({
   label,
@@ -9494,7 +9556,7 @@ function CustomerOrder({
       style: {
         fontFamily: "'Inter', sans-serif",
         minHeight: "100vh",
-        background: PAPER,
+        background: "#FFC700",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -9826,7 +9888,7 @@ function CustomerOrder({
       display: "flex",
       alignItems: "flex-start",
       gap: 6,
-      background: "#FDF6D3",
+      background: "#FFC700",
       border: "1px solid #FDBA74",
       borderRadius: 8,
       padding: "8px 10px",
@@ -9879,7 +9941,7 @@ function CustomerOrder({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Inter', sans-serif",
-      background: PAPER,
+      background: "#FFC700",
       color: INK,
       minHeight: "100vh"
     }
