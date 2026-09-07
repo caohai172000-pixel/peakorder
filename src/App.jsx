@@ -569,6 +569,98 @@ function EmptyBowlArt({
     opacity: 0.7
   }));
 }
+// Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
+// (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
+const LETTER_BACKDROP_ITEMS = [
+  { ch: "P", top: "4%", left: "6%", size: 220, rot: -12 },
+  { ch: "E", top: "2%", left: "68%", size: 180, rot: 8 },
+  { ch: "A", top: "20%", left: "38%", size: 260, rot: -6 },
+  { ch: "K", top: "38%", left: "82%", size: 200, rot: 14 },
+  { ch: "O", top: "55%", left: "4%", size: 240, rot: 10 },
+  { ch: "R", top: "68%", left: "60%", size: 220, rot: -10 },
+  { ch: "D", top: "80%", left: "22%", size: 190, rot: 6 },
+  { ch: "E", top: "86%", left: "78%", size: 170, rot: -14 },
+  { ch: "R", top: "48%", left: "50%", size: 150, rot: 4 }
+];
+// Vài minh họa nét vẽ trắng chìm (bát, đũa, hơi nóng) xen với chữ cái
+const WHITE_ART_ITEMS = [
+  { top: "12%", left: "80%", size: 90, rot: -8, kind: "bowl" },
+  { top: "62%", left: "10%", size: 70, rot: 10, kind: "chopsticks" },
+  { top: "88%", left: "60%", size: 80, rot: -6, kind: "bowl" }
+];
+function WhiteFoodIcon({
+  kind,
+  size,
+  rot
+}) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 100 100",
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: 2.4,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    opacity: 0.35,
+    style: {
+      transform: `rotate(${rot}deg)`
+    }
+  };
+  if (kind === "chopsticks") {
+    return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+      d: "M20 90 L75 15"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M32 90 L87 15"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+    d: "M15 45 Q50 42 85 45 Q82 75 50 78 Q18 75 15 45 Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M10 45 H90"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M38 28 C 42 18, 47 34, 52 22 S 62 18, 64 28",
+    opacity: 0.6
+  }));
+}
+function LetterBackdrop({
+  color = "#EAB300"
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    "aria-hidden": "true",
+    style: {
+      position: "absolute",
+      inset: 0,
+      overflow: "hidden",
+      zIndex: 0,
+      pointerEvents: "none"
+    }
+  }, LETTER_BACKDROP_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "disp",
+    style: {
+      position: "absolute",
+      top: it.top,
+      left: it.left,
+      fontSize: it.size,
+      color,
+      transform: `rotate(${it.rot}deg)`,
+      lineHeight: 1,
+      userSelect: "none"
+    }
+  }, it.ch)), WHITE_ART_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: `art-${i}`,
+    style: {
+      position: "absolute",
+      top: it.top,
+      left: it.left
+    }
+  }, /*#__PURE__*/React.createElement(WhiteFoodIcon, {
+    kind: it.kind,
+    size: it.size,
+    rot: it.rot
+  }))));
+}
 function StampLogo({
   size = 56,
   letter = "P",
@@ -1579,7 +1671,7 @@ const ALL_NAV = {
 const OWNER_PRIMARY = ["orders", "inventory", "reports"];
 const OWNER_SECONDARY = ["products", "ingredients", "channels", "expenses", "costs", "staff"];
 const STAFF_PRIMARY = ["pos", "orders", "inventory"];
-const STAFF_SECONDARY = ["channels"];
+const STAFF_SECONDARY = [];
 function navForRole(role) {
   return role === "owner" ? {
     primary: OWNER_PRIMARY,
@@ -1714,41 +1806,6 @@ function App() {
           await sb.from("branches").insert(seedB);
           branchRows = seedB;
         }
-        if (staffRows.length === 0) {
-          const seedS = SEED_STAFF.map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("staff").insert(seedS);
-          staffRows = seedS;
-        }
-        if (costRows.length === 0) {
-          const seedF = SEED_FIXED_COSTS.map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("fixed_costs").insert(seedF);
-          costRows = seedF;
-        }
-        if (stockRows.length === 0) {
-          const firstBranch = branchRows[0] ? branchRows[0].name : SEED_BRANCHES[0];
-          const seedStock = SEED_PRODUCTS.map(p2 => ({
-            branch: firstBranch,
-            product_id: p2.id,
-            stock: p2.stock,
-            shop_id: shopId
-          }));
-          await sb.from("branch_stock").insert(seedStock);
-          stockRows = seedStock;
-        }
-        if (ingRows.length === 0) {
-          const seedIg = SEED_INGREDIENTS.map(ingredientToDb).map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("ingredients").insert(seedIg);
-          ingRows = seedIg;
-        }
         setProducts(prodRows.map(productFromDb));
         setBranches(branchRows.map(branchFromDb));
         setBranch(branchRows[0] ? branchRows[0].name : SEED_BRANCHES[0]);
@@ -1835,6 +1892,52 @@ function App() {
       if (branchStockRefetchRef.current) clearTimeout(branchStockRefetchRef.current);
     };
   }, [loaded, shopId]);
+  // Chỉ tải/khởi tạo dữ liệu riêng của nhân viên (chi phí, nguyên liệu, tồn
+  // kho) SAU KHI đăng nhập xong — vì các bảng này bị RLS chặn khi chưa đăng
+  // nhập, trước đây tưởng nhầm "chưa có dữ liệu" nên tự chèn dữ liệu mẫu đè
+  // lên dữ liệu thật. Bảng "staff" KHÔNG nằm ở đây vì nó công khai (cần
+  // hiện được danh sách tài khoản Quản lý ngay trên màn đăng nhập, trước
+  // khi ai đăng nhập cả) — được tải ở effect chính phía trên.
+  useEffect(() => {
+    if (!shopId || !currentUser) return;
+    (async () => {
+      try {
+        const [f, bsRes2, igRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
+        let costRows = f.data || [];
+        let stockRows = bsRes2.data || [];
+        let ingRows = igRes2.data || [];
+        if (costRows.length === 0) {
+          const seedF = SEED_FIXED_COSTS.map(r => ({ ...r,
+            shop_id: shopId
+          }));
+          await sb.from("fixed_costs").insert(seedF);
+          costRows = seedF;
+        }
+        if (stockRows.length === 0) {
+          const seedStock = SEED_PRODUCTS.map(p2 => ({
+            branch: branch || SEED_BRANCHES[0],
+            product_id: p2.id,
+            stock: p2.stock,
+            shop_id: shopId
+          }));
+          await sb.from("branch_stock").insert(seedStock);
+          stockRows = seedStock;
+        }
+        if (ingRows.length === 0) {
+          const seedIg = SEED_INGREDIENTS.map(ingredientToDb).map(r => ({ ...r,
+            shop_id: shopId
+          }));
+          await sb.from("ingredients").insert(seedIg);
+          ingRows = seedIg;
+        }
+        setFixedCosts(costRows);
+        setBranchStock(stockRows.map(branchStockFromDb));
+        setIngredients(ingRows.map(ingredientFromDb));
+      } catch (e) {
+        console.error("post-login data load error", e);
+      }
+    })();
+  }, [shopId, currentUser]);
   const saveTimeoutRef1 = useRef(null);
   useEffect(() => {
     if (!loaded || !isOwner) return;
@@ -2874,17 +2977,21 @@ function TableReservation({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FDF6D3",
-        padding: 20
+        background: "#FFC700",
+        padding: 20,
+        position: "relative",
+        overflow: "hidden"
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
       style: {
         maxWidth: 360,
         textAlign: "center",
         background: "#fff",
         border: "1px solid #D9C9B4",
         borderRadius: 16,
-        padding: "32px 24px"
+        padding: "32px 24px",
+        position: "relative",
+        zIndex: 1
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -2919,15 +3026,19 @@ function TableReservation({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FDF6D3",
+      background: "#FFC700",
       padding: isMobile ? 16 : 24,
       display: "flex",
-      justifyContent: "center"
+      justifyContent: "center",
+      position: "relative",
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       maxWidth: 420,
-      width: "100%"
+      width: "100%",
+      position: "relative",
+      zIndex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -3090,7 +3201,7 @@ function TableReservation({
     disabled: busy,
     style: {
       width: "100%",
-      background: "linear-gradient(135deg,#A83E28,#A5341F)",
+      background: "#A83E28",
       border: "none",
       borderRadius: 10,
       padding: "13px 20px",
@@ -3128,17 +3239,21 @@ function ShopBlockedScreen({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#FDF6D3",
-      padding: 20
+      background: "#FFC700",
+      padding: 20,
+      position: "relative",
+      overflow: "hidden"
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       maxWidth: 380,
       textAlign: "center",
       background: "#fff",
       border: "1px solid #D9C9B4",
       borderRadius: 16,
-      padding: "32px 24px"
+      padding: "32px 24px",
+      position: "relative",
+      zIndex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3575,32 +3690,38 @@ function DarkShell({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Inter', sans-serif",
-      minHeight: "100dvh",
+      minHeight: "100vh",
       width: "100%",
       maxWidth: "100vw",
       boxSizing: "border-box",
       overflowX: "hidden",
-      overflowY: "auto",
-      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FDF6D3 55%, #F3EBD9 100%)",
+      background: "#FFC700",
       color: INK,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: 20,
+      padding: "16px 20px",
       position: "relative"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `
-      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap');
-      .disp{font-family:'Space Grotesk',sans-serif; letter-spacing:-0.01em;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}
-    `), topRight && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
       right: 16,
-      maxWidth: "calc(100% - 32px)"
+      maxWidth: "calc(100% - 32px)",
+      zIndex: 1
     }
-  }, topRight), children);
+  }, topRight), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      zIndex: 1,
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }
+  }, children));
 }
 function ConfirmPinModal({
   label,
@@ -3730,7 +3851,7 @@ function StartScreen({
     month: "2-digit",
     year: "numeric"
   }) : null;
-  const quickItems = products ? products.slice(0, 8) : [];
+  const quickItems = products || [];
   return /*#__PURE__*/React.createElement(DarkShell, {
     topRight: /*#__PURE__*/React.createElement("button", {
       onClick: onSelectManage,
@@ -3753,17 +3874,17 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 184,
-      height: 184,
-      borderRadius: 28,
+      width: 150,
+      height: 150,
+      borderRadius: 24,
       border: `3px solid ${JADE}`,
       background: PAPER,
       boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 14,
-      padding: shopLogoUrl ? 10 : 20,
+      marginBottom: 10,
+      padding: shopLogoUrl ? 8 : 16,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3772,13 +3893,13 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
-      borderRadius: 18,
+      borderRadius: 16,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
-      fontSize: 56,
+      fontSize: 44,
       color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
@@ -3786,12 +3907,12 @@ function StartScreen({
       display: "flex",
       alignItems: "center",
       gap: 8,
-      marginBottom: 6
+      marginBottom: 3
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
-      fontSize: 28,
+      fontSize: 22,
       fontWeight: 700,
       textAlign: "center",
       color: JADE_DARK
@@ -3800,15 +3921,14 @@ function StartScreen({
     isOpen: isOpen
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 14,
+      fontSize: 13,
       color: MUTED,
-      marginBottom: 34,
+      marginBottom: 14,
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: isMobile ? "100%" : 320,
-      marginTop: 12,
+      width: isMobile ? "100%" : 280,
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8
@@ -3840,42 +3960,42 @@ function StartScreen({
         it.onClick();
       },
       style: {
-        aspectRatio: "1",
+        aspectRatio: "1.3",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 6,
+        gap: 4,
         background: active ? it.color : "#E2E0D6",
         border: "none",
-        borderRadius: 14,
+        borderRadius: 12,
         color: active ? "#fff" : "#7D7568"
       }
     }, /*#__PURE__*/React.createElement(it.icon, {
-      size: 24,
+      size: 18,
       color: active ? "#fff" : "#7D7568"
     }), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 12,
+        fontSize: 10.5,
         fontWeight: 700
       }
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      gridColumn: "1 / -1",
-      marginTop: 22
+      marginTop: 12,
+      width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12.5,
+      fontSize: 12,
       fontWeight: 600,
       color: MUTED,
-      marginBottom: 10
+      marginBottom: 6
     }
   }, "Thực đơn nhanh"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
-      gap: 10,
+      gap: 8,
       overflowX: "auto",
       paddingBottom: 4,
       WebkitOverflowScrolling: "touch"
@@ -3888,21 +4008,35 @@ function StartScreen({
       gap: 8,
       background: CARD,
       border: `1px solid ${LINE}`,
-      borderRadius: 30,
-      padding: "5px 14px 5px 5px",
-      flexShrink: 0
+      borderRadius: 12,
+      padding: 8,
+      flexShrink: 0,
+      width: 160
     }
   }, /*#__PURE__*/React.createElement(ProductThumb, {
     p: p,
-    size: 38
-  }), /*#__PURE__*/React.createElement("span", {
+    size: 36
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      minWidth: 0,
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       fontWeight: 600,
       color: INK,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
       whiteSpace: "nowrap"
     }
-  }, p.name)))))));
+  }, p.name), /*#__PURE__*/React.createElement("div", {
+    className: "mono",
+    style: {
+      fontSize: 11,
+      color: JADE
+    }
+  }, fmt(p.price)))))))));
 }
 function LoginScreen({
   staff,
@@ -4552,7 +4686,10 @@ function TopBar({
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: 10
+      gap: 10,
+      position: "sticky",
+      top: 0,
+      zIndex: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5261,7 +5398,14 @@ function POS({
       display: "flex",
       gap: 8,
       marginBottom: 14,
-      flexWrap: isMobile ? "wrap" : "nowrap"
+      flexWrap: isMobile ? "wrap" : "nowrap",
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6422,7 +6566,14 @@ function Products({
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16
+      marginBottom: 16,
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -7349,7 +7500,14 @@ function Orders({
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 14,
-      gap: 10
+      gap: 10,
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -9500,7 +9658,7 @@ function CustomerOrder({
       style: {
         fontFamily: "'Inter', sans-serif",
         minHeight: "100vh",
-        background: PAPER,
+        background: "#FFC700",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -9832,7 +9990,7 @@ function CustomerOrder({
       display: "flex",
       alignItems: "flex-start",
       gap: 6,
-      background: "#FDF6D3",
+      background: "#FFC700",
       border: "1px solid #FDBA74",
       borderRadius: 8,
       padding: "8px 10px",
@@ -9885,7 +10043,7 @@ function CustomerOrder({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Inter', sans-serif",
-      background: PAPER,
+      background: "#FFC700",
       color: INK,
       minHeight: "100vh"
     }
