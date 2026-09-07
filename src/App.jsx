@@ -4693,7 +4693,10 @@ function TopBar({
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: 10
+      gap: 10,
+      position: "sticky",
+      top: 0,
+      zIndex: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5402,7 +5405,14 @@ function POS({
       display: "flex",
       gap: 8,
       marginBottom: 14,
-      flexWrap: isMobile ? "wrap" : "nowrap"
+      flexWrap: isMobile ? "wrap" : "nowrap",
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6563,7 +6573,14 @@ function Products({
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 16
+      marginBottom: 16,
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -7490,7 +7507,14 @@ function Orders({
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 14,
-      gap: 10
+      gap: 10,
+      position: "sticky",
+      top: isMobile ? 52 : 68,
+      zIndex: 10,
+      background: PAPER,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginTop: -8
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
