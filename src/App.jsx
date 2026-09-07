@@ -582,6 +582,47 @@ const LETTER_BACKDROP_ITEMS = [
   { ch: "E", top: "86%", left: "78%", size: 170, rot: -14 },
   { ch: "R", top: "48%", left: "50%", size: 150, rot: 4 }
 ];
+// Vài minh họa nét vẽ trắng chìm (bát, đũa, hơi nóng) xen với chữ cái
+const WHITE_ART_ITEMS = [
+  { top: "12%", left: "80%", size: 90, rot: -8, kind: "bowl" },
+  { top: "62%", left: "10%", size: 70, rot: 10, kind: "chopsticks" },
+  { top: "88%", left: "60%", size: 80, rot: -6, kind: "bowl" }
+];
+function WhiteFoodIcon({
+  kind,
+  size,
+  rot
+}) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 100 100",
+    fill: "none",
+    stroke: "#fff",
+    strokeWidth: 2.4,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    opacity: 0.35,
+    style: {
+      transform: `rotate(${rot}deg)`
+    }
+  };
+  if (kind === "chopsticks") {
+    return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+      d: "M20 90 L75 15"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M32 90 L87 15"
+    }));
+  }
+  return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+    d: "M15 45 Q50 42 85 45 Q82 75 50 78 Q18 75 15 45 Z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M10 45 H90"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M38 28 C 42 18, 47 34, 52 22 S 62 18, 64 28",
+    opacity: 0.6
+  }));
+}
 function LetterBackdrop({
   color = "#EAB300"
 }) {
@@ -607,7 +648,18 @@ function LetterBackdrop({
       lineHeight: 1,
       userSelect: "none"
     }
-  }, it.ch)));
+  }, it.ch)), WHITE_ART_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: `art-${i}`,
+    style: {
+      position: "absolute",
+      top: it.top,
+      left: it.left
+    }
+  }, /*#__PURE__*/React.createElement(WhiteFoodIcon, {
+    kind: it.kind,
+    size: it.size,
+    rot: it.rot
+  }))));
 }
 function StampLogo({
   size = 56,
@@ -3811,17 +3863,17 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 184,
-      height: 184,
-      borderRadius: 28,
+      width: 240,
+      height: 240,
+      borderRadius: 32,
       border: `3px solid ${JADE}`,
       background: PAPER,
       boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 14,
-      padding: shopLogoUrl ? 10 : 20,
+      marginBottom: 18,
+      padding: shopLogoUrl ? 12 : 24,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3830,13 +3882,13 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
-      borderRadius: 18,
+      borderRadius: 22,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
-      fontSize: 56,
+      fontSize: 72,
       color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
@@ -3849,7 +3901,7 @@ function StartScreen({
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
-      fontSize: 28,
+      fontSize: 36,
       fontWeight: 700,
       textAlign: "center",
       color: JADE_DARK
@@ -3860,12 +3912,12 @@ function StartScreen({
     style: {
       fontSize: 14,
       color: MUTED,
-      marginBottom: 34,
+      marginBottom: 28,
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: isMobile ? "100%" : 320,
+      width: isMobile ? "100%" : 280,
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8
@@ -3897,23 +3949,23 @@ function StartScreen({
         it.onClick();
       },
       style: {
-        aspectRatio: "1",
+        aspectRatio: "1.3",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 6,
+        gap: 4,
         background: active ? it.color : "#E2E0D6",
         border: "none",
-        borderRadius: 14,
+        borderRadius: 12,
         color: active ? "#fff" : "#7D7568"
       }
     }, /*#__PURE__*/React.createElement(it.icon, {
-      size: 24,
+      size: 18,
       color: active ? "#fff" : "#7D7568"
     }), /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 12,
+        fontSize: 10.5,
         fontWeight: 700
       }
     }, it.title));
