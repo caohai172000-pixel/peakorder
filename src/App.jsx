@@ -233,8 +233,8 @@ function QrCardPreview({
   });
 }
 const INK = "#361E14";
-const PAPER = "#FFF9ED";
-const CARD = "#FCF8F2";
+const PAPER = "#FDF6D3";
+const CARD = "#FFFEF7";
 const JADE = "#A83E28";
 const JADE_DARK = "#57423D";
 const JADE_GRADIENT = "#A83E28";
@@ -1618,6 +1618,7 @@ function useOnline() {
 function App() {
   const [shopName, setShopName] = useState("");
   const [shopLogoUrl, setShopLogoUrl] = useState(null);
+  const [shopSlogan, setShopSlogan] = useState(null);
   const [paymentRequests, setPaymentRequests] = useState([]);
   const [tableReservations, setTableReservations] = useState([]);
   const [products, setProducts] = useState(SEED_PRODUCTS);
@@ -1674,7 +1675,7 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url,slogan").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
@@ -1768,6 +1769,7 @@ function App() {
         setOrders((o.data || []).map(orderFromDb));
         setShopName(shopRes.data ? shopRes.data.name : "");
         setShopLogoUrl(shopRes.data ? shopRes.data.logo_url : null);
+        setShopSlogan(shopRes.data ? shopRes.data.slogan : null);
         setSaveErr(false);
       } catch (e) {
         console.error("load error", e);
@@ -1963,7 +1965,8 @@ function App() {
       products: products,
       shopStatus: shopStatus,
       shopName: shopName,
-      shopLogoUrl: shopLogoUrl
+      shopLogoUrl: shopLogoUrl,
+      shopSlogan: shopSlogan
     });
   }
   return /*#__PURE__*/React.createElement("div", {
@@ -2069,7 +2072,9 @@ function App() {
     setShopStatus: setShopStatus,
     shopId: shopId,
     shopLogoUrl: shopLogoUrl,
-    setShopLogoUrl: setShopLogoUrl
+    setShopLogoUrl: setShopLogoUrl,
+    shopSlogan: shopSlogan,
+    setShopSlogan: setShopSlogan
   }), visibleTab === "staff" && /*#__PURE__*/React.createElement(Staff, {
     staff: staff,
     setStaff: setStaff,
@@ -2869,7 +2874,7 @@ function TableReservation({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FFF9ED",
+        background: "#FDF6D3",
         padding: 20
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -2914,7 +2919,7 @@ function TableReservation({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FFF9ED",
+      background: "#FDF6D3",
       padding: isMobile ? 16 : 24,
       display: "flex",
       justifyContent: "center"
@@ -3123,7 +3128,7 @@ function ShopBlockedScreen({
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#FFF9ED",
+      background: "#FDF6D3",
       padding: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3252,7 +3257,7 @@ function AdminPanel() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FFF9ED",
+        background: "#FDF6D3",
         padding: 20
       }
     }, /*#__PURE__*/React.createElement("div", {
@@ -3303,7 +3308,7 @@ function AdminPanel() {
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: "100vh",
-      background: "#FFF9ED",
+      background: "#FDF6D3",
       padding: 24
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3571,7 +3576,7 @@ function DarkShell({
     style: {
       fontFamily: "'Inter', sans-serif",
       minHeight: "100vh",
-      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FFF9ED 55%, #F3EBD9 100%)",
+      background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FDF6D3 55%, #F3EBD9 100%)",
       color: INK,
       display: "flex",
       flexDirection: "column",
@@ -3704,9 +3709,11 @@ function StartScreen({
   products,
   shopStatus,
   shopName,
-  shopLogoUrl
+  shopLogoUrl,
+  shopSlogan
 }) {
   const displayName = shopName || "Quán của bạn";
+  const [channelPick, setChannelPick] = useState("order");
   const initials = displayName.trim().split(/\s+/).slice(-2).map(w => w[0]).join("").toUpperCase().slice(0, 2);
   const isOpen = shopStatus ? shopStatus.isOpen : true;
   const reopenText = shopStatus && shopStatus.reopenDate ? new Date(shopStatus.reopenDate).toLocaleDateString("vi-VN", {
@@ -3747,7 +3754,7 @@ function StartScreen({
       alignItems: "center",
       justifyContent: "center",
       marginBottom: 14,
-      padding: shopLogoUrl ? 0 : 20,
+      padding: shopLogoUrl ? 10 : 20,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3756,6 +3763,7 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
+      borderRadius: 18,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
@@ -3788,58 +3796,61 @@ function StartScreen({
       marginBottom: 34,
       textAlign: "center"
     }
-  }, isOpen ? "Chào mừng bạn" : reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ"), /*#__PURE__*/React.createElement("div", {
+  }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 320,
       display: "grid",
-      gap: 10
+      gridTemplateColumns: "repeat(3, 1fr)",
+      gap: 8
     }
   }, [{
+    key: "order",
     onClick: onSelectOrder,
     icon: Receipt,
     title: isOpen ? "Đặt hàng" : "Đặt trước",
-    desc: isOpen ? "Giao/mang đi" : "Xử lý khi quán mở lại"
+    color: "#E8871E"
   }, {
+    key: "dinein",
     onClick: onSelectDineIn,
     icon: Package,
-    title: "Gọi món tại bàn",
-    desc: "Đang ngồi tại quán"
+    title: "Gọi món",
+    color: "#2563EB"
   }, {
+    key: "reserve",
     onClick: onSelectReserve,
     icon: Calendar,
     title: "Đặt bàn",
-    desc: "Giữ chỗ trước"
-  }].map((it, i) => /*#__PURE__*/React.createElement("button", {
-    key: i,
-    onClick: it.onClick,
-    style: {
-      width: "100%",
-      display: "flex",
-      alignItems: "center",
-      gap: 14,
-      background: i === 0 ? JADE_GRADIENT : CARD,
-      border: i === 0 ? "none" : `1px solid ${LINE}`,
-      borderRadius: 16,
-      padding: "16px 18px",
-      color: i === 0 ? "#fff" : INK,
-      textAlign: "left",
-      boxShadow: i === 0 ? "0 8px 24px rgba(168,62,40,0.28)" : "none"
-    }
-  }, /*#__PURE__*/React.createElement(it.icon, {
-    size: 26,
-    color: i === 0 ? "#fff" : JADE
-  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "disp",
-    style: {
-      fontSize: 16,
-      fontWeight: 700
-    }
-  }, it.title), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: i === 0 ? "rgba(255,255,255,0.85)" : MUTED
-    }
-  }, it.desc)))), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
+    color: "#5B6B3A"
+  }].map(it => {
+    const active = channelPick === it.key;
+    return /*#__PURE__*/React.createElement("button", {
+      key: it.key,
+      onClick: () => {
+        setChannelPick(it.key);
+        it.onClick();
+      },
+      style: {
+        aspectRatio: "1",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        background: active ? it.color : "#E2E0D6",
+        border: "none",
+        borderRadius: 14,
+        color: active ? "#fff" : "#7D7568"
+      }
+    }, /*#__PURE__*/React.createElement(it.icon, {
+      size: 24,
+      color: active ? "#fff" : "#7D7568"
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700
+      }
+    }, it.title));
+  }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16
     }
@@ -4651,7 +4662,7 @@ function ReceiptCanvasActions({
     canvas.width = width;
     canvas.height = headerH + itemsH + footerH;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FFF9ED";
+    ctx.fillStyle = "#FDF6D3";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#361E14";
     ctx.textAlign = "center";
@@ -7741,13 +7752,25 @@ function Costs({
   setShopStatus,
   shopId,
   shopLogoUrl,
-  setShopLogoUrl
+  setShopLogoUrl,
+  shopSlogan,
+  setShopSlogan
 }) {
   const [bankForm, setBankForm] = useState(bankInfo);
   const [saved, setSaved] = useState(false);
   const [reopenInput, setReopenInput] = useState(shopStatus?.reopenDate || "");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoErr, setLogoErr] = useState("");
+  const [sloganInput, setSloganInput] = useState(shopSlogan || "");
+  const [sloganSaved, setSloganSaved] = useState(false);
+  const saveSlogan = async () => {
+    await sb.from("shops").update({
+      slogan: sloganInput.trim() || null
+    }).eq("id", shopId);
+    setShopSlogan(sloganInput.trim() || null);
+    setSloganSaved(true);
+    setTimeout(() => setSloganSaved(false), 2000);
+  };
   const uploadLogo = async e => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -7818,7 +7841,8 @@ function Costs({
       alignItems: "center",
       justifyContent: "center",
       background: PAPER,
-      flexShrink: 0
+      flexShrink: 0,
+      padding: shopLogoUrl ? 6 : 0
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
     src: shopLogoUrl,
@@ -7826,6 +7850,7 @@ function Costs({
     style: {
       width: "100%",
       height: "100%",
+      borderRadius: 10,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
@@ -7860,6 +7885,49 @@ function Costs({
       marginTop: 6
     }
   }, logoErr))), /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Slogan giới thiệu quán"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: MUTED,
+      marginBottom: 10
+    }
+  }, "Hiện ở trang chào thay cho dòng \"Chào mừng bạn\" mặc định."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 24,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: sloganInput,
+    onChange: e => setSloganInput(e.target.value),
+    placeholder: "vd. Hương vị thủ công ninh từ xương hầm 18 giờ",
+    maxLength: 100,
+    style: {
+      flex: "1 1 260px",
+      padding: "10px 12px",
+      borderRadius: 8,
+      border: `1px solid ${LINE}`,
+      fontSize: 13
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: saveSlogan,
+    style: {
+      background: sloganSaved ? SAGE : JADE_GRADIENT,
+      border: "none",
+      borderRadius: 8,
+      padding: "9px 16px",
+      color: "#fff",
+      fontSize: 13,
+      fontWeight: 700
+    }
+  }, sloganSaved ? "✓ Đã lưu" : "Lưu slogan")), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 16,
@@ -9760,7 +9828,7 @@ function CustomerOrder({
       display: "flex",
       alignItems: "flex-start",
       gap: 6,
-      background: "#FFF9ED",
+      background: "#FDF6D3",
       border: "1px solid #FDBA74",
       borderRadius: 8,
       padding: "8px 10px",
