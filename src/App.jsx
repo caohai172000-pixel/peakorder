@@ -1671,7 +1671,7 @@ const ALL_NAV = {
 const OWNER_PRIMARY = ["orders", "inventory", "reports"];
 const OWNER_SECONDARY = ["products", "ingredients", "channels", "expenses", "costs", "staff"];
 const STAFF_PRIMARY = ["pos", "orders", "inventory"];
-const STAFF_SECONDARY = ["channels"];
+const STAFF_SECONDARY = [];
 function navForRole(role) {
   return role === "owner" ? {
     primary: OWNER_PRIMARY,
@@ -1806,41 +1806,6 @@ function App() {
           await sb.from("branches").insert(seedB);
           branchRows = seedB;
         }
-        if (staffRows.length === 0) {
-          const seedS = SEED_STAFF.map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("staff").insert(seedS);
-          staffRows = seedS;
-        }
-        if (costRows.length === 0) {
-          const seedF = SEED_FIXED_COSTS.map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("fixed_costs").insert(seedF);
-          costRows = seedF;
-        }
-        if (stockRows.length === 0) {
-          const firstBranch = branchRows[0] ? branchRows[0].name : SEED_BRANCHES[0];
-          const seedStock = SEED_PRODUCTS.map(p2 => ({
-            branch: firstBranch,
-            product_id: p2.id,
-            stock: p2.stock,
-            shop_id: shopId
-          }));
-          await sb.from("branch_stock").insert(seedStock);
-          stockRows = seedStock;
-        }
-        if (ingRows.length === 0) {
-          const seedIg = SEED_INGREDIENTS.map(ingredientToDb).map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("ingredients").insert(seedIg);
-          ingRows = seedIg;
-        }
         setProducts(prodRows.map(productFromDb));
         setBranches(branchRows.map(branchFromDb));
         setBranch(branchRows[0] ? branchRows[0].name : SEED_BRANCHES[0]);
@@ -1927,6 +1892,59 @@ function App() {
       if (branchStockRefetchRef.current) clearTimeout(branchStockRefetchRef.current);
     };
   }, [loaded, shopId]);
+  // Chỉ tải/khởi tạo dữ liệu riêng của nhân viên (chi phí, nguyên liệu, tồn
+  // kho, danh sách nhân viên) SAU KHI đăng nhập xong — vì các bảng này bị
+  // RLS chặn khi chưa đăng nhập, trước đây tưởng nhầm "chưa có dữ liệu" nên
+  // tự chèn dữ liệu mẫu đè lên dữ liệu thật.
+  useEffect(() => {
+    if (!shopId || !currentUser) return;
+    (async () => {
+      try {
+        const [f, bsRes2, igRes2, sRows] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at")]);
+        let costRows = f.data || [];
+        let stockRows = bsRes2.data || [];
+        let ingRows = igRes2.data || [];
+        let staffRows = sRows.data || [];
+        if (staffRows.length === 0) {
+          const seedS = SEED_STAFF.map(r => ({ ...r,
+            shop_id: shopId
+          }));
+          await sb.from("staff").insert(seedS);
+          staffRows = seedS;
+        }
+        if (costRows.length === 0) {
+          const seedF = SEED_FIXED_COSTS.map(r => ({ ...r,
+            shop_id: shopId
+          }));
+          await sb.from("fixed_costs").insert(seedF);
+          costRows = seedF;
+        }
+        if (stockRows.length === 0) {
+          const seedStock = SEED_PRODUCTS.map(p2 => ({
+            branch: branch || SEED_BRANCHES[0],
+            product_id: p2.id,
+            stock: p2.stock,
+            shop_id: shopId
+          }));
+          await sb.from("branch_stock").insert(seedStock);
+          stockRows = seedStock;
+        }
+        if (ingRows.length === 0) {
+          const seedIg = SEED_INGREDIENTS.map(ingredientToDb).map(r => ({ ...r,
+            shop_id: shopId
+          }));
+          await sb.from("ingredients").insert(seedIg);
+          ingRows = seedIg;
+        }
+        setStaff(staffRows);
+        setFixedCosts(costRows);
+        setBranchStock(stockRows.map(branchStockFromDb));
+        setIngredients(ingRows.map(ingredientFromDb));
+      } catch (e) {
+        console.error("post-login data load error", e);
+      }
+    })();
+  }, [shopId, currentUser]);
   const saveTimeoutRef1 = useRef(null);
   useEffect(() => {
     if (!loaded || !isOwner) return;
@@ -3840,7 +3858,7 @@ function StartScreen({
     month: "2-digit",
     year: "numeric"
   }) : null;
-  const quickItems = products ? products.slice(0, 4) : [];
+  const quickItems = products ? products.slice(0, 8) : [];
   return /*#__PURE__*/React.createElement(DarkShell, {
     topRight: /*#__PURE__*/React.createElement("button", {
       onClick: onSelectManage,
@@ -3983,9 +4001,11 @@ function StartScreen({
     }
   }, "Thực đơn nhanh"), /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 8
+      display: "flex",
+      gap: 8,
+      overflowX: "auto",
+      paddingBottom: 4,
+      WebkitOverflowScrolling: "touch"
     }
   }, quickItems.map(p => /*#__PURE__*/React.createElement("div", {
     key: p.id,
@@ -3997,7 +4017,8 @@ function StartScreen({
       border: `1px solid ${LINE}`,
       borderRadius: 12,
       padding: 8,
-      minWidth: 0
+      flexShrink: 0,
+      width: 160
     }
   }, /*#__PURE__*/React.createElement(ProductThumb, {
     p: p,
