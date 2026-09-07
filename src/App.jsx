@@ -3576,6 +3576,10 @@ function DarkShell({
     style: {
       fontFamily: "'Inter', sans-serif",
       minHeight: "100vh",
+      width: "100%",
+      maxWidth: "100vw",
+      boxSizing: "border-box",
+      overflowX: "hidden",
       background: "radial-gradient(circle at 50% 0%, #FFFFFF 0%, #FDF6D3 55%, #F3EBD9 100%)",
       color: INK,
       display: "flex",
@@ -3589,7 +3593,8 @@ function DarkShell({
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
-      right: 16
+      right: 16,
+      maxWidth: "calc(100% - 32px)"
     }
   }, topRight), children);
 }
@@ -4206,14 +4211,7 @@ function LoginScreen({
     }
   }, /*#__PURE__*/React.createElement(ArrowLeft, {
     size: 14
-  }), " Quay lại"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: LINE,
-      marginTop: 20,
-      filter: "opacity(0.8)"
-    }
-  }, "Demo: quản lý 1111 · điểm bán 2222")));
+  }), " Quay lại")));
 }
 function Sidebar({
   tab,
