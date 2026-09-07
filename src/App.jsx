@@ -3858,7 +3858,7 @@ function StartScreen({
     month: "2-digit",
     year: "numeric"
   }) : null;
-  const quickItems = products ? products.slice(0, 8) : [];
+  const quickItems = products || [];
   return /*#__PURE__*/React.createElement(DarkShell, {
     topRight: /*#__PURE__*/React.createElement("button", {
       onClick: onSelectManage,
