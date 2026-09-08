@@ -3965,7 +3965,7 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      width: "100%",
+      gridColumn: "1 / -1",
       marginTop: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
