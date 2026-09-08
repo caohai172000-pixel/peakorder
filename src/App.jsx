@@ -3639,7 +3639,7 @@ function DarkShell({
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: "16px 20px",
+      padding: "10px 20px",
       position: "relative"
     }
   }, /*#__PURE__*/React.createElement("style", null, `
@@ -3816,17 +3816,17 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 150,
-      height: 150,
-      borderRadius: 24,
+      width: 128,
+      height: 128,
+      borderRadius: 22,
       border: `3px solid ${JADE}`,
       background: PAPER,
       boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 10,
-      padding: shopLogoUrl ? 8 : 16,
+      marginBottom: 8,
+      padding: shopLogoUrl ? 7 : 14,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3835,13 +3835,13 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
-      borderRadius: 16,
+      borderRadius: 15,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
-      fontSize: 44,
+      fontSize: 38,
       color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
@@ -3849,7 +3849,7 @@ function StartScreen({
       display: "flex",
       alignItems: "center",
       gap: 8,
-      marginBottom: 3
+      marginBottom: 2
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -3865,13 +3865,13 @@ function StartScreen({
     style: {
       fontSize: 13,
       color: MUTED,
-      marginBottom: 14,
+      marginBottom: 10,
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 280,
-      marginTop: 10,
+      marginTop: 6,
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8
@@ -3926,7 +3926,7 @@ function StartScreen({
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       gridColumn: "1 / -1",
-      marginTop: 18
+      marginTop: 12
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3940,7 +3940,7 @@ function StartScreen({
       display: "flex",
       gap: 8,
       overflowX: "auto",
-      paddingBottom: 4,
+      paddingBottom: 2,
       WebkitOverflowScrolling: "touch"
     }
   }, quickItems.map(p => /*#__PURE__*/React.createElement("div", {
@@ -3952,7 +3952,7 @@ function StartScreen({
       background: CARD,
       border: `1px solid ${LINE}`,
       borderRadius: 12,
-      padding: 8,
+      padding: 6,
       flexShrink: 0,
       width: 160
     }
