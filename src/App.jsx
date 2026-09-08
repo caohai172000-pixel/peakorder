@@ -3632,19 +3632,17 @@ function DarkShell({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Inter', sans-serif",
-      minHeight: "100vh",
-      width: "100%",
-      maxWidth: "100vw",
-      boxSizing: "border-box",
+      position: "fixed",
+      inset: 0,
+      overflowY: "auto",
       overflowX: "hidden",
       background: "#FFC700",
       color: INK,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "center",
-      padding: "16px 20px",
-      position: "relative"
+      justifyContent: "flex-end",
+      padding: "16px 20px 28px"
     }
   }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3854,7 +3852,7 @@ function StartScreen({
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
-      fontSize: 22,
+      fontSize: 44,
       fontWeight: 700,
       textAlign: "center",
       color: JADE_DARK
@@ -3953,7 +3951,8 @@ function StartScreen({
       borderRadius: 12,
       padding: 8,
       flexShrink: 0,
-      width: 160
+      width: 160,
+      overflow: "hidden"
     }
   }, /*#__PURE__*/React.createElement(ProductThumb, {
     p: p,
