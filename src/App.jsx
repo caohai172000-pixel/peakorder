@@ -572,15 +572,15 @@ function EmptyBowlArt({
 // Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
 // (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
 const LETTER_BACKDROP_ITEMS = [
-  { ch: "P", top: "4%", left: "6%", size: 220, rot: -12 },
-  { ch: "E", top: "2%", left: "68%", size: 180, rot: 8 },
-  { ch: "A", top: "20%", left: "38%", size: 260, rot: -6 },
-  { ch: "K", top: "38%", left: "82%", size: 200, rot: 14 },
-  { ch: "O", top: "55%", left: "4%", size: 240, rot: 10 },
-  { ch: "R", top: "68%", left: "60%", size: 220, rot: -10 },
-  { ch: "D", top: "80%", left: "22%", size: 190, rot: 6 },
-  { ch: "E", top: "86%", left: "78%", size: 170, rot: -14 },
-  { ch: "R", top: "48%", left: "50%", size: 150, rot: 4 }
+  { ch: "P", top: "4%", left: "6%", size: 140, rot: -12 },
+  { ch: "E", top: "3%", left: "68%", size: 120, rot: 8 },
+  { ch: "A", top: "22%", left: "38%", size: 160, rot: -6 },
+  { ch: "K", top: "40%", left: "80%", size: 130, rot: 14 },
+  { ch: "O", top: "55%", left: "4%", size: 150, rot: 10 },
+  { ch: "R", top: "68%", left: "58%", size: 140, rot: -10 },
+  { ch: "D", top: "80%", left: "22%", size: 120, rot: 6 },
+  { ch: "E", top: "84%", left: "76%", size: 110, rot: -14 },
+  { ch: "R", top: "48%", left: "50%", size: 100, rot: 4 }
 ];
 // Vài minh họa nét vẽ trắng chìm (bát, đũa, hơi nóng) xen với chữ cái
 const WHITE_ART_ITEMS = [
