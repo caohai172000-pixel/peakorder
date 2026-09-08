@@ -3641,7 +3641,7 @@ function DarkShell({
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      justifyContent: "flex-end",
+      justifyContent: "center",
       padding: "16px 20px 28px"
     }
   }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
@@ -3814,6 +3814,18 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
+      height: "100%",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
       width: 150,
       height: 150,
       borderRadius: 24,
@@ -3867,6 +3879,10 @@ function StartScreen({
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 280,
       display: "grid",
@@ -3950,8 +3966,8 @@ function StartScreen({
       border: `1px solid ${LINE}`,
       borderRadius: 12,
       padding: 8,
-      flexShrink: 0,
-      width: 160,
+      flex: "1 0 160px",
+      maxWidth: 260,
       overflow: "hidden"
     }
   }, /*#__PURE__*/React.createElement(ProductThumb, {
@@ -3977,7 +3993,7 @@ function StartScreen({
       fontSize: 11,
       color: JADE
     }
-  }, fmt(p.price)))))))));
+  }, fmt(p.price))))))))));
 }
 function LoginScreen({
   staff,
