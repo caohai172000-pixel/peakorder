@@ -1785,30 +1785,9 @@ function App() {
         let costRows = f.data || [];
         let stockRows = bsRes.data || [];
         let ingRows = igRes.data || [];
-        if (prodRows.length === 0) {
-          const seedP = SEED_PRODUCTS.map(productToDb).map(r => ({
-            ...r,
-            shop_id: shopId
-          }));
-          await sb.from("products").insert(seedP);
-          prodRows = seedP;
-        }
-        if (branchRows.length === 0) {
-          const seedB = SEED_BRANCHES.map(name => ({
-            id: name,
-            name,
-            address: null,
-            phone: null,
-            active: true,
-            pin: SEED_BRANCH_PIN,
-            shop_id: shopId
-          }));
-          await sb.from("branches").insert(seedB);
-          branchRows = seedB;
-        }
         setProducts(prodRows.map(productFromDb));
         setBranches(branchRows.map(branchFromDb));
-        setBranch(branchRows[0] ? branchRows[0].name : SEED_BRANCHES[0]);
+        setBranch(branchRows[0] ? branchRows[0].name : "");
         setStaff(staffRows);
         setFixedCosts(costRows);
         setBranchStock(stockRows.map(branchStockFromDb));
@@ -1903,36 +1882,9 @@ function App() {
     (async () => {
       try {
         const [f, bsRes2, igRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
-        let costRows = f.data || [];
-        let stockRows = bsRes2.data || [];
-        let ingRows = igRes2.data || [];
-        if (costRows.length === 0) {
-          const seedF = SEED_FIXED_COSTS.map(r => ({ ...r,
-            shop_id: shopId
-          }));
-          await sb.from("fixed_costs").insert(seedF);
-          costRows = seedF;
-        }
-        if (stockRows.length === 0) {
-          const seedStock = SEED_PRODUCTS.map(p2 => ({
-            branch: branch || SEED_BRANCHES[0],
-            product_id: p2.id,
-            stock: p2.stock,
-            shop_id: shopId
-          }));
-          await sb.from("branch_stock").insert(seedStock);
-          stockRows = seedStock;
-        }
-        if (ingRows.length === 0) {
-          const seedIg = SEED_INGREDIENTS.map(ingredientToDb).map(r => ({ ...r,
-            shop_id: shopId
-          }));
-          await sb.from("ingredients").insert(seedIg);
-          ingRows = seedIg;
-        }
-        setFixedCosts(costRows);
-        setBranchStock(stockRows.map(branchStockFromDb));
-        setIngredients(ingRows.map(ingredientFromDb));
+        setFixedCosts(f.data || []);
+        setBranchStock((bsRes2.data || []).map(branchStockFromDb));
+        setIngredients((igRes2.data || []).map(ingredientFromDb));
       } catch (e) {
         console.error("post-login data load error", e);
       }
@@ -1964,7 +1916,7 @@ function App() {
     saveTimeoutRef2.current = setTimeout(() => {
       (async () => {
         try {
-          await Promise.all([replaceTable("branches", branches, branchToDb, shopId), replaceTable("staff", staff, r => r, shopId), replaceTable("fixed_costs", fixedCosts, r => r, shopId), sb.from("bank_info").upsert({
+          await Promise.all([replaceTable("branches", branches, branchToDb, shopId), replaceTable("fixed_costs", fixedCosts, r => r, shopId), sb.from("bank_info").upsert({
             shop_id: shopId,
             bank_code: bankInfo.bankCode || null,
             account_no: bankInfo.accountNo || null,
@@ -1988,7 +1940,7 @@ function App() {
     return () => {
       if (saveTimeoutRef2.current) clearTimeout(saveTimeoutRef2.current);
     };
-  }, [branches, staff, fixedCosts, bankInfo, shopStatus, ingredients, loaded, shopId]);
+  }, [branches, fixedCosts, bankInfo, shopStatus, ingredients, loaded, shopId]);
   const lowStock = products.filter(p => stockOf(branchStock, branch, p.id) <= 5);
   const pendingCount = orders.filter(o => o.status === "pending").length;
   const nav = currentUser ? navForRole(currentUser.role) : {
@@ -2185,7 +2137,8 @@ function App() {
     branches: branches,
     setBranches: setBranches,
     isMobile: isMobile,
-    shopName: shopName
+    shopName: shopName,
+    shopId: shopId
   }), visibleTab === "channels" && /*#__PURE__*/React.createElement(SalesChannels, {
     branches: branches,
     shopName: shopName,
@@ -8306,7 +8259,8 @@ function Staff({
   branches,
   setBranches,
   isMobile,
-  shopName
+  shopName,
+  shopId
 }) {
   const [confirmDelete, setConfirmDelete] = useState(null); // { type: "admin"|"emp", id, label } | null
   // --- Điểm bán ---
@@ -8400,28 +8354,37 @@ function Staff({
       pin: ""
     });
   };
-  const saveAdmin = () => {
+  const saveAdmin = async () => {
     if (!adminForm.name.trim() || adminForm.pin.length !== 4) return;
     if (adminEditing === "new") {
-      setStaff(s => [...s, {
+      const row = {
         id: uid(),
         name: adminForm.name.trim(),
         pin: adminForm.pin,
         role: "owner",
         branch: null
-      }]);
+      };
+      setStaff(s => [...s, row]);
+      await sb.from("staff").insert({ ...row,
+        shop_id: shopId
+      });
     } else {
-      setStaff(s => s.map(x => x.id === adminEditing ? {
-        ...x,
+      const id = adminEditing;
+      setStaff(s => s.map(x => x.id === id ? { ...x,
         name: adminForm.name.trim(),
         pin: adminForm.pin
       } : x));
+      await sb.from("staff").update({
+        name: adminForm.name.trim(),
+        pin: adminForm.pin
+      }).eq("id", id).eq("shop_id", shopId);
     }
     cancelAdmin();
   };
-  const removeAdmin = id => {
+  const removeAdmin = async id => {
     if (id === currentUser.id) return;
     setStaff(s => s.filter(x => x.id !== id));
+    await sb.from("staff").delete().eq("id", id).eq("shop_id", shopId);
   };
 
   // --- Nhân viên (chỉ để theo dõi, không đăng nhập) ---
@@ -8452,26 +8415,37 @@ function Staff({
       branch: ""
     });
   };
-  const saveEmp = () => {
+  const saveEmp = async () => {
     if (!empForm.name.trim()) return;
     if (empEditing === "new") {
-      setStaff(s => [...s, {
+      const row = {
         id: uid(),
         name: empForm.name.trim(),
         pin: "",
         role: "employee",
         branch: empForm.branch || null
-      }]);
+      };
+      setStaff(s => [...s, row]);
+      await sb.from("staff").insert({ ...row,
+        shop_id: shopId
+      });
     } else {
-      setStaff(s => s.map(x => x.id === empEditing ? {
-        ...x,
+      const id = empEditing;
+      setStaff(s => s.map(x => x.id === id ? { ...x,
         name: empForm.name.trim(),
         branch: empForm.branch || null
       } : x));
+      await sb.from("staff").update({
+        name: empForm.name.trim(),
+        branch: empForm.branch || null
+      }).eq("id", id).eq("shop_id", shopId);
     }
     cancelEmp();
   };
-  const removeEmp = id => setStaff(s => s.filter(x => x.id !== id));
+  const removeEmp = async id => {
+    setStaff(s => s.filter(x => x.id !== id));
+    await sb.from("staff").delete().eq("id", id).eq("shop_id", shopId);
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
