@@ -3625,13 +3625,14 @@ function DarkShell({
   topRight
 }) {
   return /*#__PURE__*/React.createElement("div", {
+    className: "app-shell",
     style: {
       fontFamily: "'Inter', sans-serif",
-      minHeight: "100vh",
       width: "100%",
       maxWidth: "100vw",
       boxSizing: "border-box",
       overflowX: "hidden",
+      overflowY: "auto",
       background: "#FFC700",
       color: INK,
       display: "flex",
@@ -3641,7 +3642,11 @@ function DarkShell({
       padding: "16px 20px",
       position: "relative"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `
+      .app-shell { min-height: 100vh; }
+      @supports (min-height: 100dvh) { .app-shell { min-height: 100dvh; } }
+      button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}
+    `), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
@@ -3866,6 +3871,7 @@ function StartScreen({
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 280,
+      marginTop: 10,
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8
@@ -3919,8 +3925,8 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 12,
-      width: "100%"
+      gridColumn: "1 / -1",
+      marginTop: 18
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -9686,7 +9692,7 @@ function CustomerOrder({
         padding: 24,
         textAlign: "center"
       }
-    }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;}`), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("style", null, `button{font-family:inherit;cursor:pointer;}`), /*#__PURE__*/React.createElement("div", {
       style: {
         width: 64,
         height: 64,
@@ -10067,7 +10073,7 @@ function CustomerOrder({
       color: INK,
       minHeight: "100vh"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `* { box-sizing: border-box; } button{font-family:inherit;cursor:pointer;} input,select{font-family:inherit;} .mono{font-family:'JetBrains Mono',monospace;} .disp{font-family:'Space Grotesk',sans-serif;}`), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `* { box-sizing: border-box; } button{font-family:inherit;cursor:pointer;} input,select{font-family:inherit;} .mono{font-family:'JetBrains Mono',monospace;}`), /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
       color: "#F3EBD9",
