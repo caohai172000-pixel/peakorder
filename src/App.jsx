@@ -475,6 +475,25 @@ async function upsertStockRows(shopId, branchStockSnapshot, branch, deltasByProd
   const entries = Object.entries(deltasByProductId);
   await Promise.all(entries.map(([productId, delta]) => upsertStockRow(shopId, branch, productId, stockOf(branchStockSnapshot, branch, productId) + delta)));
 }
+// Cộng/trừ tồn kho ATOMIC bằng hàm Postgres "adjust_branch_stock" (xem file
+// adjust_branch_stock.sql). Khác với upsertStockRow/upsertStockRows ở trên
+// (tính số tuyệt đối dựa trên state cũ trên máy rồi ghi đè — dễ bị 2 thao
+// tác cùng lúc giẫm lên nhau làm mất số), hàm này chỉ gửi ĐỘ LỆCH (delta)
+// lên, phép cộng do chính Postgres thực hiện nên luôn đúng dù nhiều người
+// thao tác đồng thời.
+async function adjustStockRow(shopId, branch, productId, delta) {
+  const { error } = await sb.rpc("adjust_branch_stock", {
+    p_shop_id: shopId,
+    p_branch: branch,
+    p_product_id: productId,
+    p_delta: delta
+  });
+  if (error) console.error("adjust_branch_stock", error);
+}
+async function adjustStockRows(shopId, branch, deltasByProductId) {
+  const entries = Object.entries(deltasByProductId);
+  await Promise.all(entries.map(([productId, delta]) => adjustStockRow(shopId, branch, productId, delta)));
+}
 
 // ---- icon đơn giản (thay cho lucide-react) ----
 function makeIcon(glyph) {
@@ -5031,7 +5050,7 @@ function POS({
       deltas[i.id] = (deltas[i.id] || 0) - i.qty;
     });
     setBranchStock(bs => {
-      upsertStockRows(shopId, bs, branch, deltas);
+      adjustStockRows(shopId, branch, deltas);
       return withStockDeltas(bs, branch, cart.map(i => ({
         id: i.id,
         qty: i.qty
@@ -6768,7 +6787,7 @@ function Inventory({
   const [mode, setMode] = useState("branch"); // owner: "branch"|"total"|"receive" — staff: "branch"|"history"
   const [viewBranch, setViewBranch] = useState(isOwner ? branches[0] ? branches[0].name : "" : currentUser.branch);
   const adjust = (productId, delta) => setBranchStock(bs => {
-    upsertStockRow(shopId, viewBranch, productId, stockOf(bs, viewBranch, productId) + delta);
+    adjustStockRow(shopId, viewBranch, productId, delta);
     return withStockDelta(bs, viewBranch, productId, delta);
   });
   const rowsBranch = [...products].map(p => ({
@@ -7092,7 +7111,7 @@ function StockReceiveForm({
       receipt.items.forEach(it => {
         deltas[it.productId] = (deltas[it.productId] || 0) + it.qty;
       });
-      upsertStockRows(shopId, bs, branch, deltas);
+      adjustStockRows(shopId, branch, deltas);
       let next = bs;
       receipt.items.forEach(it => {
         next = withStockDelta(next, branch, it.productId, it.qty);
@@ -7384,7 +7403,7 @@ function Orders({
       deltas[i.id] = (deltas[i.id] || 0) - i.qty;
     });
     setBranchStock(bs => {
-      upsertStockRows(shopId, bs, order.branch, deltas);
+      adjustStockRows(shopId, order.branch, deltas);
       return withStockDeltas(bs, order.branch, order.items.map(i => ({
         id: i.id,
         qty: i.qty
