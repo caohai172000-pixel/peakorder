@@ -1890,25 +1890,6 @@ function App() {
       }
     })();
   }, [shopId, currentUser]);
-  const saveTimeoutRef1 = useRef(null);
-  useEffect(() => {
-    if (!loaded || !isOwner) return;
-    if (saveTimeoutRef1.current) clearTimeout(saveTimeoutRef1.current);
-    saveTimeoutRef1.current = setTimeout(() => {
-      (async () => {
-        try {
-          await replaceTable("products", products, productToDb, shopId);
-          setSaveErr(false);
-        } catch (e) {
-          console.error("save error (products)", e);
-          setSaveErr(true);
-        }
-      })();
-    }, 500);
-    return () => {
-      if (saveTimeoutRef1.current) clearTimeout(saveTimeoutRef1.current);
-    };
-  }, [products, loaded, shopId]);
   const saveTimeoutRef2 = useRef(null);
   useEffect(() => {
     if (!loaded || !isOwner) return;
@@ -1916,7 +1897,7 @@ function App() {
     saveTimeoutRef2.current = setTimeout(() => {
       (async () => {
         try {
-          await Promise.all([replaceTable("branches", branches, branchToDb, shopId), replaceTable("fixed_costs", fixedCosts, r => r, shopId), sb.from("bank_info").upsert({
+          await Promise.all([sb.from("bank_info").upsert({
             shop_id: shopId,
             bank_code: bankInfo.bankCode || null,
             account_no: bankInfo.accountNo || null,
@@ -1929,7 +1910,7 @@ function App() {
             reopen_date: shopStatus.reopenDate || null
           }, {
             onConflict: "shop_id"
-          }), replaceTable("ingredients", ingredients, ingredientToDb, shopId)]);
+          })]);
           setSaveErr(false);
         } catch (e) {
           console.error("save error (settings)", e);
@@ -1940,7 +1921,7 @@ function App() {
     return () => {
       if (saveTimeoutRef2.current) clearTimeout(saveTimeoutRef2.current);
     };
-  }, [branches, fixedCosts, bankInfo, shopStatus, ingredients, loaded, shopId]);
+  }, [bankInfo, shopStatus, loaded, shopId]);
   const lowStock = products.filter(p => stockOf(branchStock, branch, p.id) <= 5);
   const pendingCount = orders.filter(o => o.status === "pending").length;
   const nav = currentUser ? navForRole(currentUser.role) : {
@@ -2087,12 +2068,14 @@ function App() {
     setProducts: setProducts,
     isMobile: isMobile,
     currentUser: currentUser,
-    ingredients: ingredients
+    ingredients: ingredients,
+    shopId: shopId
   }), visibleTab === "ingredients" && /*#__PURE__*/React.createElement(Ingredients, {
     ingredients: ingredients,
     setIngredients: setIngredients,
     currentUser: currentUser,
-    isMobile: isMobile
+    isMobile: isMobile,
+    shopId: shopId
   }), visibleTab === "inventory" && /*#__PURE__*/React.createElement(Inventory, {
     products: products,
     branches: branches,
@@ -2119,7 +2102,8 @@ function App() {
     fixedCosts: fixedCosts,
     setFixedCosts: setFixedCosts,
     branches: branches,
-    currentUser: currentUser
+    currentUser: currentUser,
+    shopId: shopId
   }), visibleTab === "costs" && /*#__PURE__*/React.createElement(Costs, {
     bankInfo: bankInfo,
     setBankInfo: setBankInfo,
@@ -6138,7 +6122,8 @@ function Ingredients({
   ingredients,
   setIngredients,
   currentUser,
-  isMobile
+  isMobile,
+  shopId
 }) {
   const [editing, setEditing] = useState(null); // "new" | id | null
   const [form, setForm] = useState({
@@ -6171,23 +6156,34 @@ function Ingredients({
       price: ""
     });
   };
-  const save = () => {
+  const save = async () => {
     if (!form.name.trim() || form.price === "") return;
     const clean = {
       name: form.name.trim(),
       unit: form.unit,
       price: Number(form.price)
     };
-    if (editing === "new") setIngredients(is => [...is, {
-      ...clean,
-      id: uid()
-    }]);else setIngredients(is => is.map(i => i.id === editing ? {
-      ...i,
-      ...clean
-    } : i));
+    if (editing === "new") {
+      const row = { ...clean,
+        id: uid()
+      };
+      setIngredients(is => [...is, row]);
+      await sb.from("ingredients").insert({ ...ingredientToDb(row),
+        shop_id: shopId
+      });
+    } else {
+      const id = editing;
+      setIngredients(is => is.map(i => i.id === id ? { ...i,
+        ...clean
+      } : i));
+      await sb.from("ingredients").update(clean).eq("id", id).eq("shop_id", shopId);
+    }
     cancel();
   };
-  const remove = id => setIngredients(is => is.filter(i => i.id !== id));
+  const remove = async id => {
+    setIngredients(is => is.filter(i => i.id !== id));
+    await sb.from("ingredients").delete().eq("id", id).eq("shop_id", shopId);
+  };
   const unitLabel = u => u === "kg" ? "kg" : u === "l" ? "lít" : "cái";
   const baseLabel = u => u === "cai" ? "cái" : u === "kg" ? "gam" : "ml";
   const FormFields = /*#__PURE__*/React.createElement("div", {
@@ -6371,7 +6367,8 @@ function Products({
   setProducts,
   isMobile,
   currentUser,
-  ingredients
+  ingredients,
+  shopId
 }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyProduct());
@@ -6393,19 +6390,31 @@ function Products({
     setEditing(null);
     setForm(emptyProduct());
   };
-  const save = () => {
+  const save = async () => {
     if (!form.name.trim() || form.price === "") return;
     const clean = {
       ...form,
       price: Number(form.price)
     };
-    if (editing === "new") setProducts(ps => [...ps, {
-      ...clean,
-      id: uid()
-    }]);else setProducts(ps => ps.map(p => p.id === editing ? clean : p));
+    if (editing === "new") {
+      const row = { ...clean,
+        id: uid()
+      };
+      setProducts(ps => [...ps, row]);
+      await sb.from("products").insert({ ...productToDb(row),
+        shop_id: shopId
+      });
+    } else {
+      const id = editing;
+      setProducts(ps => ps.map(p => p.id === id ? clean : p));
+      await sb.from("products").update(productToDb(clean)).eq("id", id).eq("shop_id", shopId);
+    }
     cancel();
   };
-  const remove = id => setProducts(ps => ps.filter(p => p.id !== id));
+  const remove = async id => {
+    setProducts(ps => ps.filter(p => p.id !== id));
+    await sb.from("products").delete().eq("id", id).eq("shop_id", shopId);
+  };
   const FormFields = /*#__PURE__*/React.createElement("div", {
     style: {
       background: CARD,
@@ -7689,7 +7698,8 @@ function Expenses({
   fixedCosts,
   setFixedCosts,
   branches,
-  currentUser
+  currentUser,
+  shopId
 }) {
   const [viewBranch, setViewBranch] = useState(branches[0] ? branches[0].name : "");
   const [name, setName] = useState("");
@@ -7698,18 +7708,25 @@ function Expenses({
 
   const rows = fixedCosts.filter(c => c.branch === viewBranch);
   const total = rows.reduce((s, c) => s + Number(c.amount || 0), 0);
-  const add = () => {
+  const add = async () => {
     if (!name.trim() || !amount || !viewBranch) return;
-    setFixedCosts(c => [...c, {
+    const row = {
       id: uid(),
       name: name.trim(),
       amount: Number(amount),
       branch: viewBranch
-    }]);
+    };
+    setFixedCosts(c => [...c, row]);
     setName("");
     setAmount("");
+    await sb.from("fixed_costs").insert({ ...row,
+      shop_id: shopId
+    });
   };
-  const remove = id => setFixedCosts(c => c.filter(x => x.id !== id));
+  const remove = async id => {
+    setFixedCosts(c => c.filter(x => x.id !== id));
+    await sb.from("fixed_costs").delete().eq("id", id).eq("shop_id", shopId);
+  };
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -8298,33 +8315,62 @@ function Staff({
       pin: ""
     });
   };
-  const saveBranch = () => {
+  const saveBranch = async () => {
     const nm = branchForm.name.trim();
     if (!nm || branchForm.pin.length !== 4) return;
     if (branchEditing === "new") {
       if (branches.some(b => b.name === nm)) return;
-      setBranches(bs => [...bs, {
+      const row = {
         name: nm,
         address: branchForm.address.trim(),
         phone: branchForm.phone.trim(),
         pin: branchForm.pin,
         active: true
-      }]);
+      };
+      setBranches(bs => [...bs, row]);
+      await sb.from("branches").insert({ ...branchToDb(row),
+        shop_id: shopId
+      });
     } else {
-      setBranches(bs => bs.map(b => b.name === branchEditing ? {
-        ...b,
+      const oldName = branchEditing;
+      const patch = {
         name: nm,
         address: branchForm.address.trim(),
         phone: branchForm.phone.trim(),
         pin: branchForm.pin
+      };
+      setBranches(bs => bs.map(b => b.name === oldName ? { ...b,
+        ...patch
       } : b));
+      if (nm !== oldName) {
+        // Đổi tên chi nhánh = đổi khóa chính (id = tên) -> xóa cũ, tạo mới
+        const full = branches.find(b => b.name === oldName);
+        await sb.from("branches").delete().eq("id", oldName).eq("shop_id", shopId);
+        await sb.from("branches").insert({ ...branchToDb({ ...full,
+            ...patch
+          }),
+          shop_id: shopId
+        });
+      } else {
+        await sb.from("branches").update({
+          address: patch.address,
+          phone: patch.phone,
+          pin: patch.pin
+        }).eq("id", oldName).eq("shop_id", shopId);
+      }
     }
     cancelBranch();
   };
-  const toggleBranchActive = nm => setBranches(bs => bs.map(b => b.name === nm ? {
-    ...b,
-    active: !b.active
-  } : b));
+  const toggleBranchActive = async nm => {
+    const current = branches.find(b => b.name === nm);
+    const nextActive = !(current ? current.active : true);
+    setBranches(bs => bs.map(b => b.name === nm ? { ...b,
+      active: nextActive
+    } : b));
+    await sb.from("branches").update({
+      active: nextActive
+    }).eq("id", nm).eq("shop_id", shopId);
+  };
 
   // --- Tài khoản Quản lý ---
   const admins = staff.filter(s => s.role === "owner");
