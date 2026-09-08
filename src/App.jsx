@@ -571,24 +571,23 @@ function EmptyBowlArt({
 }
 // Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
 // (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
-const LETTER_BACKDROP_ITEMS = [
-  { ch: "P", top: "4%", left: "6%", size: 140, rot: -12 },
-  { ch: "E", top: "3%", left: "68%", size: 120, rot: 8 },
-  { ch: "A", top: "22%", left: "38%", size: 160, rot: -6 },
-  { ch: "K", top: "40%", left: "80%", size: 130, rot: 14 },
-  { ch: "O", top: "55%", left: "4%", size: 150, rot: 10 },
-  { ch: "R", top: "68%", left: "58%", size: 140, rot: -10 },
-  { ch: "D", top: "80%", left: "22%", size: 120, rot: 6 },
-  { ch: "E", top: "84%", left: "76%", size: 110, rot: -14 },
-  { ch: "R", top: "48%", left: "50%", size: 100, rot: 4 }
+// Chữ "peakorder" đầy đủ, lặp lại rải rác ngẫu nhiên làm nền
+const WORD_BACKDROP_ITEMS = [
+  { top: "3%", left: "4%", size: 40, rot: -10 },
+  { top: "9%", left: "58%", size: 30, rot: 8 },
+  { top: "24%", left: "22%", size: 46, rot: -6 },
+  { top: "37%", left: "70%", size: 32, rot: 12 },
+  { top: "52%", left: "2%", size: 36, rot: 9 },
+  { top: "66%", left: "48%", size: 42, rot: -8 },
+  { top: "81%", left: "18%", size: 30, rot: 6 }
 ];
-// Vài minh họa nét vẽ trắng chìm (bát, đũa, hơi nóng) xen với chữ cái
-const WHITE_ART_ITEMS = [
-  { top: "12%", left: "80%", size: 90, rot: -8, kind: "bowl" },
-  { top: "62%", left: "10%", size: 70, rot: 10, kind: "chopsticks" },
-  { top: "88%", left: "60%", size: 80, rot: -6, kind: "bowl" }
+// 3 địa danh Việt Nam, nét vẽ trắng đơn giản hóa
+const LANDMARK_ITEMS = [
+  { top: "14%", left: "72%", size: 110, rot: -6, kind: "benthanh" },
+  { top: "60%", left: "6%", size: 100, rot: 5, kind: "quoctugiam" },
+  { top: "84%", left: "58%", size: 100, rot: -4, kind: "hue" }
 ];
-function WhiteFoodIcon({
+function LandmarkIcon({
   kind,
   size,
   rot
@@ -596,31 +595,72 @@ function WhiteFoodIcon({
   const common = {
     width: size,
     height: size,
-    viewBox: "0 0 100 100",
+    viewBox: "0 0 120 120",
     fill: "none",
     stroke: "#fff",
-    strokeWidth: 2.4,
+    strokeWidth: 2,
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    opacity: 0.35,
+    opacity: 0.4,
     style: {
       transform: `rotate(${rot}deg)`
     }
   };
-  if (kind === "chopsticks") {
+  // Chợ Bến Thành — tháp đồng hồ mái vòm
+  if (kind === "benthanh") {
     return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-      d: "M20 90 L75 15"
+      d: "M50 108h20V70h-20z"
     }), /*#__PURE__*/React.createElement("path", {
-      d: "M32 90 L87 15"
+      d: "M44 70h32l-4-14H48z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M52 56h16v-8H52z"
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: "60",
+      cy: "38",
+      r: "10"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M60 32v6l4 3"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M60 16v6"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M14 108h92"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M18 108V80h20v28M82 108V80h20v28"
     }));
   }
+  // Quốc Tử Giám — Khuê Văn Các (gác 2 tầng, mái cong, 4 cột)
+  if (kind === "quoctugiam") {
+    return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+      d: "M30 108h60"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M38 108V60M50 108V60M70 108V60M82 108V60"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M34 60h52v-8H34z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M26 52 Q60 38 94 52 L88 60 Q60 48 32 60 Z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M44 44h32v-14H44z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M36 30 Q60 18 84 30 L80 36 Q60 26 40 36 Z"
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: "60",
+      cy: "37",
+      r: "5"
+    }));
+  }
+  // Kinh Thành Huế — Kỳ Đài (cột cờ nhiều tầng trên nền thành)
   return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-    d: "M15 45 Q50 42 85 45 Q82 75 50 78 Q18 75 15 45 Z"
+    d: "M10 108h100"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M10 45 H90"
+    d: "M20 108V88h80v20"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M38 28 C 42 18, 47 34, 52 22 S 62 18, 64 28",
-    opacity: 0.6
+    d: "M34 88V72h52v16"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M46 72V58h28v14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M60 58V14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M60 18h22v14H60z"
   }));
 }
 function LetterBackdrop({
@@ -635,7 +675,7 @@ function LetterBackdrop({
       zIndex: 0,
       pointerEvents: "none"
     }
-  }, LETTER_BACKDROP_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("span", {
+  }, WORD_BACKDROP_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("span", {
     key: i,
     className: "disp",
     style: {
@@ -646,16 +686,17 @@ function LetterBackdrop({
       color,
       transform: `rotate(${it.rot}deg)`,
       lineHeight: 1,
-      userSelect: "none"
+      userSelect: "none",
+      whiteSpace: "nowrap"
     }
-  }, it.ch)), WHITE_ART_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: `art-${i}`,
+  }, "peakorder")), LANDMARK_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("div", {
+    key: `lm-${i}`,
     style: {
       position: "absolute",
       top: it.top,
       left: it.left
     }
-  }, /*#__PURE__*/React.createElement(WhiteFoodIcon, {
+  }, /*#__PURE__*/React.createElement(LandmarkIcon, {
     kind: it.kind,
     size: it.size,
     rot: it.rot
