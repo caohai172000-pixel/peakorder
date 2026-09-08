@@ -1881,10 +1881,15 @@ function App() {
     if (!shopId || !currentUser) return;
     (async () => {
       try {
-        const [f, bsRes2, igRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at")]);
+        const [f, bsRes2, igRes2, bkRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle()]);
         setFixedCosts(f.data || []);
         setBranchStock((bsRes2.data || []).map(branchStockFromDb));
         setIngredients((igRes2.data || []).map(ingredientFromDb));
+        if (bkRes2.data) setBankInfo({
+          bankCode: bkRes2.data.bank_code || "",
+          accountNo: bkRes2.data.account_no || "",
+          accountName: bkRes2.data.account_name || ""
+        });
       } catch (e) {
         console.error("post-login data load error", e);
       }
@@ -3625,28 +3630,23 @@ function DarkShell({
   topRight
 }) {
   return /*#__PURE__*/React.createElement("div", {
-    className: "app-shell",
     style: {
       fontFamily: "'Inter', sans-serif",
+      minHeight: "100vh",
       width: "100%",
       maxWidth: "100vw",
       boxSizing: "border-box",
       overflowX: "hidden",
-      overflowY: "auto",
       background: "#FFC700",
       color: INK,
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      padding: "10px 20px",
+      padding: "16px 20px",
       position: "relative"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `
-      .app-shell { min-height: 100vh; }
-      @supports (min-height: 100dvh) { .app-shell { min-height: 100dvh; } }
-      button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}
-    `), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
@@ -3816,17 +3816,17 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 128,
-      height: 128,
-      borderRadius: 22,
+      width: 150,
+      height: 150,
+      borderRadius: 24,
       border: `3px solid ${JADE}`,
       background: PAPER,
       boxShadow: "3px 3px 0px #F3EBD9",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 8,
-      padding: shopLogoUrl ? 7 : 14,
+      marginBottom: 10,
+      padding: shopLogoUrl ? 8 : 16,
       overflow: "hidden"
     }
   }, shopLogoUrl ? /*#__PURE__*/React.createElement("img", {
@@ -3835,13 +3835,13 @@ function StartScreen({
     style: {
       width: "100%",
       height: "100%",
-      borderRadius: 15,
+      borderRadius: 16,
       objectFit: "cover"
     }
   }) : /*#__PURE__*/React.createElement("span", {
     className: "disp",
     style: {
-      fontSize: 38,
+      fontSize: 44,
       color: JADE
     }
   }, initials || "?")), /*#__PURE__*/React.createElement("div", {
@@ -3849,7 +3849,7 @@ function StartScreen({
       display: "flex",
       alignItems: "center",
       gap: 8,
-      marginBottom: 2
+      marginBottom: 3
     }
   }, /*#__PURE__*/React.createElement("div", {
     className: "disp",
@@ -3865,13 +3865,12 @@ function StartScreen({
     style: {
       fontSize: 13,
       color: MUTED,
-      marginBottom: 10,
+      marginBottom: 14,
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 280,
-      marginTop: 6,
       display: "grid",
       gridTemplateColumns: "repeat(3, 1fr)",
       gap: 8
@@ -3925,8 +3924,8 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      gridColumn: "1 / -1",
-      marginTop: 12
+      marginTop: 12,
+      width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3940,7 +3939,7 @@ function StartScreen({
       display: "flex",
       gap: 8,
       overflowX: "auto",
-      paddingBottom: 2,
+      paddingBottom: 4,
       WebkitOverflowScrolling: "touch"
     }
   }, quickItems.map(p => /*#__PURE__*/React.createElement("div", {
@@ -3952,7 +3951,7 @@ function StartScreen({
       background: CARD,
       border: `1px solid ${LINE}`,
       borderRadius: 12,
-      padding: 6,
+      padding: 8,
       flexShrink: 0,
       width: 160
     }
@@ -6379,6 +6378,7 @@ function Products({
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyProduct());
   const [confirmDelete, setConfirmDelete] = useState(null); // id | null
+  const [saveErr, setSaveErr] = useState("");
 
   const startAdd = () => {
     setForm(emptyProduct());
@@ -6398,6 +6398,7 @@ function Products({
   };
   const save = async () => {
     if (!form.name.trim() || form.price === "") return;
+    setSaveErr("");
     const clean = {
       ...form,
       price: Number(form.price)
@@ -6407,19 +6408,38 @@ function Products({
         id: uid()
       };
       setProducts(ps => [...ps, row]);
-      await sb.from("products").insert({ ...productToDb(row),
+      const { error } = await sb.from("products").insert({ ...productToDb(row),
         shop_id: shopId
       });
+      if (error) {
+        console.error(error);
+        setProducts(ps => ps.filter(p => p.id !== row.id));
+        setSaveErr("Không lưu được sản phẩm — thử lại. (" + error.message + ")");
+        return;
+      }
     } else {
       const id = editing;
+      const prev = products.find(p => p.id === id);
       setProducts(ps => ps.map(p => p.id === id ? clean : p));
-      await sb.from("products").update(productToDb(clean)).eq("id", id).eq("shop_id", shopId);
+      const { error } = await sb.from("products").update(productToDb(clean)).eq("id", id).eq("shop_id", shopId);
+      if (error) {
+        console.error(error);
+        setProducts(ps => ps.map(p => p.id === id ? prev : p));
+        setSaveErr("Không lưu được thay đổi — thử lại. (" + error.message + ")");
+        return;
+      }
     }
     cancel();
   };
   const remove = async id => {
+    const prev = products.find(p => p.id === id);
     setProducts(ps => ps.filter(p => p.id !== id));
-    await sb.from("products").delete().eq("id", id).eq("shop_id", shopId);
+    const { error } = await sb.from("products").delete().eq("id", id).eq("shop_id", shopId);
+    if (error) {
+      console.error(error);
+      setProducts(ps => [...ps, prev]);
+      setSaveErr("Không xóa được — thử lại. (" + error.message + ")");
+    }
   };
   const FormFields = /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6487,7 +6507,13 @@ function Products({
     setForm: setForm,
     isMobile: isMobile,
     ingredientsLib: ingredients
-  }), /*#__PURE__*/React.createElement("div", {
+  }), saveErr && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: RUST,
+      fontSize: 12,
+      marginTop: 8
+    }
+  }, saveErr), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -9692,7 +9718,7 @@ function CustomerOrder({
         padding: 24,
         textAlign: "center"
       }
-    }, /*#__PURE__*/React.createElement("style", null, `button{font-family:inherit;cursor:pointer;}`), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;}`), /*#__PURE__*/React.createElement("div", {
       style: {
         width: 64,
         height: 64,
@@ -10073,7 +10099,7 @@ function CustomerOrder({
       color: INK,
       minHeight: "100vh"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `* { box-sizing: border-box; } button{font-family:inherit;cursor:pointer;} input,select{font-family:inherit;} .mono{font-family:'JetBrains Mono',monospace;}`), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `* { box-sizing: border-box; } button{font-family:inherit;cursor:pointer;} input,select{font-family:inherit;} .mono{font-family:'JetBrains Mono',monospace;} .disp{font-family:'Space Grotesk',sans-serif;}`), /*#__PURE__*/React.createElement("div", {
     style: {
       background: INK,
       color: "#F3EBD9",
