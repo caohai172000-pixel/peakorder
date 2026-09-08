@@ -3644,15 +3644,7 @@ function DarkShell({
       justifyContent: "center",
       padding: "16px 20px 28px"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), topRight && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: "absolute",
-      top: "calc(16px + env(safe-area-inset-top))",
-      right: 16,
-      maxWidth: "calc(100% - 32px)",
-      zIndex: 1
-    }
-  }, topRight), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative",
       zIndex: 1,
@@ -3663,7 +3655,15 @@ function DarkShell({
       justifyContent: "center",
       alignItems: "center"
     }
-  }, children));
+  }, children), topRight && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: "calc(16px + env(safe-area-inset-top))",
+      right: 16,
+      maxWidth: "calc(100% - 32px)",
+      zIndex: 5
+    }
+  }, topRight));
 }
 function ConfirmPinModal({
   label,
@@ -3949,7 +3949,7 @@ function StartScreen({
       border: `1px solid ${LINE}`,
       borderRadius: 14,
       overflow: "hidden",
-      flex: "0 0 48%"
+      flex: "0 0 55%"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
