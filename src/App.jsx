@@ -3949,7 +3949,8 @@ function StartScreen({
       border: `1px solid ${LINE}`,
       borderRadius: 14,
       overflow: "hidden",
-      flex: "0 0 55%"
+      flex: "0 0 auto",
+      width: "calc(50vw - 25px)"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
