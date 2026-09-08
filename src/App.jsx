@@ -3924,23 +3924,20 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      position: "absolute",
-      left: 0,
-      right: 0,
-      bottom: 0,
-      width: "100%"
+      width: "100%",
+      marginTop: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
+      fontSize: 12.5,
       fontWeight: 600,
       color: MUTED,
-      marginBottom: 6
+      marginBottom: 8
     }
   }, "Thực đơn nhanh"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
-      gap: 8,
+      gap: 10,
       overflowX: "auto",
       paddingBottom: 4,
       WebkitOverflowScrolling: "touch"
@@ -3948,28 +3945,28 @@ function StartScreen({
   }, quickItems.map(p => /*#__PURE__*/React.createElement("div", {
     key: p.id,
     style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
       background: CARD,
       border: `1px solid ${LINE}`,
-      borderRadius: 12,
-      padding: 8,
-      flex: "1 0 160px",
-      maxWidth: 260,
+      borderRadius: 14,
+      overflow: "hidden",
+      flex: "0 0 48%"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      aspectRatio: "1",
       overflow: "hidden"
     }
   }, /*#__PURE__*/React.createElement(ProductThumb, {
     p: p,
-    size: 36
-  }), /*#__PURE__*/React.createElement("div", {
+    size: "100%"
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
-      minWidth: 0,
-      flex: 1
+      padding: "8px 10px 10px"
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
+      fontSize: 12.5,
       fontWeight: 600,
       color: INK,
       overflow: "hidden",
@@ -3979,7 +3976,7 @@ function StartScreen({
   }, p.name), /*#__PURE__*/React.createElement("div", {
     className: "mono",
     style: {
-      fontSize: 11,
+      fontSize: 12,
       color: JADE
     }
   }, fmt(p.price)))))))));
