@@ -3657,8 +3657,10 @@ function DarkShell({
       position: "relative",
       zIndex: 1,
       width: "100%",
+      height: "100%",
       display: "flex",
       flexDirection: "column",
+      justifyContent: "center",
       alignItems: "center"
     }
   }, children));
@@ -3814,18 +3816,6 @@ function StartScreen({
     }), " Quản lý")
   }, /*#__PURE__*/React.createElement("style", null, `@keyframes bbxPulse { 0% { transform: scale(1); opacity: 0.7; } 70% { transform: scale(2.4); opacity: 0; } 100% { opacity: 0; } }`), /*#__PURE__*/React.createElement("div", {
     style: {
-      height: "100%",
-      width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
       width: 150,
       height: 150,
       borderRadius: 24,
@@ -3879,10 +3869,6 @@ function StartScreen({
       textAlign: "center"
     }
   }, !isOpen ? reopenText ? `Tạm nghỉ · Mở lại ${reopenText}` : "Tạm nghỉ" : shopSlogan || "Chào mừng bạn"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }), /*#__PURE__*/React.createElement("div", {
     style: {
       width: isMobile ? "100%" : 280,
       display: "grid",
@@ -3938,7 +3924,10 @@ function StartScreen({
     }, it.title));
   }), quickItems.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 12,
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
       width: "100%"
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3993,7 +3982,7 @@ function StartScreen({
       fontSize: 11,
       color: JADE
     }
-  }, fmt(p.price))))))))));
+  }, fmt(p.price)))))))));
 }
 function LoginScreen({
   staff,
