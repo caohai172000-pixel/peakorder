@@ -6929,6 +6929,7 @@ function Inventory({
   }, "Lịch sử nhập hàng"))), showReceive && /*#__PURE__*/React.createElement(StockReceiveForm, {
     products: products,
     branches: branches,
+    branchStock: branchStock,
     setBranchStock: setBranchStock,
     setStockReceipts: setStockReceipts,
     stockReceipts: stockReceipts,
@@ -6937,6 +6938,7 @@ function Inventory({
   }), showWriteOff && /*#__PURE__*/React.createElement(StockReceiveForm, {
     products: products,
     branches: branches,
+    branchStock: branchStock,
     setBranchStock: setBranchStock,
     setStockReceipts: setStockReceipts,
     stockReceipts: stockReceipts,
@@ -7053,6 +7055,7 @@ function Inventory({
 function StockReceiveForm({
   products,
   branches,
+  branchStock,
   setBranchStock,
   setStockReceipts,
   stockReceipts,
@@ -7060,15 +7063,26 @@ function StockReceiveForm({
   shopId,
   isWriteOff = false
 }) {
+  const accent = isWriteOff ? RUST : SAGE;
+  const WRITEOFF_REASONS = ["Hỏng", "Hết hạn", "Nhầm lẫn khi nhập", "Khác"];
   const [branch, setBranch] = useState(branches.find(b => b.active !== false)?.name || branches[0]?.name || "");
   const [items, setItems] = useState([]);
   const [note, setNote] = useState("");
+  const [reason, setReason] = useState(WRITEOFF_REASONS[0]);
   const [pendingProduct, setPendingProduct] = useState(products[0] ? products[0].id : "");
   const [pendingQty, setPendingQty] = useState("");
   const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState("");
+  const currentStock = stockOf(branchStock, branch, pendingProduct);
+  const alreadyPending = items.find(i => i.productId === pendingProduct)?.qty || 0;
   const addItem = () => {
+    setErr("");
     const qty = Number(pendingQty);
     if (!pendingProduct || !qty || qty <= 0) return;
+    if (isWriteOff && alreadyPending + qty > currentStock) {
+      setErr(`Chỉ đang có ${currentStock} — không thể hủy nhiều hơn số tồn.`);
+      return;
+    }
     setItems(it => {
       const ex = it.find(i => i.productId === pendingProduct);
       if (ex) return it.map(i => i.productId === pendingProduct ? {
@@ -7086,6 +7100,7 @@ function StockReceiveForm({
   const save = () => {
     if (!branch || items.length === 0) return;
     const sign = isWriteOff ? -1 : 1;
+    const fullNote = isWriteOff ? `[${reason}]${note.trim() ? " " + note.trim() : ""}` : note.trim() || null;
     const receipt = {
       id: uid(),
       branch,
@@ -7097,7 +7112,7 @@ function StockReceiveForm({
           qty: i.qty * sign
         };
       }),
-      note: note.trim() || null,
+      note: fullNote,
       createdBy: currentUser.name,
       createdAt: new Date().toISOString()
     };
@@ -7130,7 +7145,7 @@ function StockReceiveForm({
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       background: CARD,
-      border: `1px solid ${LINE}`,
+      border: `1px solid ${isWriteOff ? "#F3B7B0" : LINE}`,
       borderRadius: 12,
       padding: 14,
       marginBottom: 20
@@ -7151,22 +7166,41 @@ function StockReceiveForm({
   }, branches.filter(b => b.active !== false).map(b => /*#__PURE__*/React.createElement("option", {
     key: b.name,
     value: b.name
-  }, b.name))), /*#__PURE__*/React.createElement("div", {
+  }, b.name))), isWriteOff && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: MUTED,
       marginBottom: 4
     }
-  }, isWriteOff ? "Thêm sản phẩm cần hủy (hỏng/nhầm lẫn...)" : "Thêm sản phẩm vào đợt nhập"), /*#__PURE__*/React.createElement("div", {
+  }, "Lý do hủy"), /*#__PURE__*/React.createElement("select", {
+    value: reason,
+    onChange: e => setReason(e.target.value),
+    style: {
+      ...inputStyle,
+      marginBottom: 12
+    }
+  }, WRITEOFF_REASONS.map(r => /*#__PURE__*/React.createElement("option", {
+    key: r,
+    value: r
+  }, r)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: MUTED,
+      marginBottom: 4
+    }
+  }, isWriteOff ? "Thêm sản phẩm cần hủy" : "Thêm sản phẩm vào đợt nhập"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 90px auto",
       gap: 8,
-      marginBottom: 12
+      marginBottom: 4
     }
   }, /*#__PURE__*/React.createElement("select", {
     value: pendingProduct,
-    onChange: e => setPendingProduct(e.target.value),
+    onChange: e => {
+      setPendingProduct(e.target.value);
+      setErr("");
+    },
     style: inputStyle
   }, products.map(p => /*#__PURE__*/React.createElement("option", {
     key: p.id,
@@ -7181,7 +7215,7 @@ function StockReceiveForm({
   }), /*#__PURE__*/React.createElement("button", {
     onClick: addItem,
     style: {
-      background: JADE,
+      background: accent,
       color: "#fff",
       border: "none",
       borderRadius: 8,
@@ -7191,7 +7225,19 @@ function StockReceiveForm({
     }
   }, /*#__PURE__*/React.createElement(Plus, {
     size: 14
-  }))), items.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: MUTED,
+      marginBottom: 8
+    }
+  }, "Đang có: ", /*#__PURE__*/React.createElement("b", null, currentStock), alreadyPending > 0 && ` (đã thêm ${alreadyPending} vào phiếu này)`), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: RUST,
+      marginBottom: 8
+    }
+  }, err), items.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "mono",
     style: {
       background: PAPER,
@@ -7224,7 +7270,7 @@ function StockReceiveForm({
       size: 13
     })));
   })), /*#__PURE__*/React.createElement("input", {
-    placeholder: "Ghi chú (không bắt buộc)",
+    placeholder: isWriteOff ? "Ghi chú thêm (không bắt buộc)" : "Ghi chú (không bắt buộc)",
     value: note,
     onChange: e => setNote(e.target.value),
     style: {
@@ -7241,7 +7287,7 @@ function StockReceiveForm({
     onClick: save,
     disabled: items.length === 0,
     style: {
-      background: items.length ? JADE_GRADIENT : LINE,
+      background: items.length ? accent : LINE,
       color: items.length ? "#fff" : MUTED,
       border: "none",
       borderRadius: 8,
@@ -7252,18 +7298,18 @@ function StockReceiveForm({
   }, isWriteOff ? "Lưu phiếu hủy hàng" : "Lưu đợt nhập hàng"), saved && /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12.5,
-      color: JADE_DARK,
+      color: accent,
       fontWeight: 600
     }
-  }, "✓ Đã cộng vào kho ", branch))), /*#__PURE__*/React.createElement("div", {
+  }, isWriteOff ? "✓ Đã trừ khỏi kho " + branch : "✓ Đã cộng vào kho " + branch))), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
       fontSize: 13,
       fontWeight: 700,
       marginBottom: 10
     }
-  }, "Lịch sử nhập hàng"), /*#__PURE__*/React.createElement(StockReceiptHistory, {
-    receipts: stockReceipts,
+  }, "Lịch sử ", isWriteOff ? "hủy hàng" : "nhập hàng"), /*#__PURE__*/React.createElement(StockReceiptHistory, {
+    receipts: stockReceipts.filter(r => isWriteOff ? r.items.some(it => it.qty < 0) : r.items.some(it => it.qty >= 0)),
     showBranch: true
   }));
 }
@@ -7308,7 +7354,16 @@ function StockReceiptHistory({
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  })), showBranch && /*#__PURE__*/React.createElement("span", {
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 600,
+      color: r.items.some(it => it.qty < 0) ? RUST : SAGE,
+      background: r.items.some(it => it.qty < 0) ? "#FFDAD3" : "#DCEBD7",
+      borderRadius: 20,
+      padding: "2px 8px"
+    }
+  }, r.items.some(it => it.qty < 0) ? "Hủy hàng" : "Nhập hàng"), showBranch && /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10.5,
       fontWeight: 600,
@@ -7331,10 +7386,10 @@ function StockReceiptHistory({
     }
   }, /*#__PURE__*/React.createElement("span", null, it.name), /*#__PURE__*/React.createElement("span", {
     style: {
-      color: JADE_DARK,
+      color: it.qty < 0 ? RUST : JADE_DARK,
       fontWeight: 600
     }
-  }, "+", it.qty)))), r.note && /*#__PURE__*/React.createElement("div", {
+  }, it.qty > 0 ? "+" : "", it.qty)))), r.note && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       fontStyle: "italic",
