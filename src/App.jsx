@@ -1873,13 +1873,13 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, o, ss, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url,slogan").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, o, ss, prRes, resvRes, bsRes] = await Promise.all([sb.from("shops").select("name,status,logo_url,slogan").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("payment_requests").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("table_reservations").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
-        })]);
+        }), sb.from("branch_stock").select("*").eq("shop_id", shopId)]);
         setApprovalStatus(shopRes.data ? shopRes.data.status : "not_found");
         setPaymentRequests(prRes.data || []);
         setTableReservations(resvRes.data || []);
@@ -1890,6 +1890,11 @@ function App() {
         setBranches(branchRows.map(branchFromDb));
         setBranch(branchRows[0] ? branchRows[0].name : "");
         setStaff(staffRows);
+        // Tồn kho (branch_stock) cần công khai cho khách hàng xem trước khi
+        // đặt hàng, nên tải ngay ở đây (không chờ đăng nhập). Bảng này cần có
+        // RLS policy SELECT cho role "anon" trên Supabase, nếu không sẽ luôn
+        // trả về rỗng với khách chưa đăng nhập.
+        if (!bsRes.error) setBranchStock((bsRes.data || []).map(branchStockFromDb));
         if (ss.data) setShopStatus({
           isOpen: ss.data.is_open,
           reopenDate: ss.data.reopen_date
@@ -1963,22 +1968,24 @@ function App() {
       if (branchStockRefetchRef.current) clearTimeout(branchStockRefetchRef.current);
     };
   }, [loaded, shopId]);
-  // Chỉ tải/khởi tạo dữ liệu riêng của nhân viên (chi phí, nguyên liệu, tồn
-  // kho) SAU KHI đăng nhập xong — vì các bảng này bị RLS chặn khi chưa đăng
-  // nhập, trước đây tưởng nhầm "chưa có dữ liệu" nên tự chèn dữ liệu mẫu đè
-  // lên dữ liệu thật. Bảng "staff" KHÔNG nằm ở đây vì nó công khai (cần
-  // hiện được danh sách tài khoản Quản lý ngay trên màn đăng nhập, trước
-  // khi ai đăng nhập cả) — được tải ở effect chính phía trên.
+  // Chỉ tải/khởi tạo dữ liệu riêng NỘI BỘ của nhân viên (chi phí, nguyên
+  // liệu, thông tin ngân hàng, phiếu nhập kho) SAU KHI đăng nhập xong — vì
+  // các bảng này bị RLS chặn khi chưa đăng nhập, trước đây tưởng nhầm "chưa
+  // có dữ liệu" nên tự chèn dữ liệu mẫu đè lên dữ liệu thật. Bảng "staff" và
+  // "branch_stock" KHÔNG nằm ở đây: "staff" cần công khai để hiện danh sách
+  // tài khoản Quản lý ngay trên màn đăng nhập; "branch_stock" cần công khai
+  // để KHÁCH HÀNG (chưa đăng nhập) xem được tồn kho khi đặt hàng — cả hai
+  // được tải ở effect chính phía trên.
   useEffect(() => {
     if (!shopId || !currentUser) return;
     setStaffDataReady(false);
     (async () => {
       try {
-        const [f, bsRes2, igRes2, bkRes2, srRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
+        const [f, igRes2, bkRes2, srRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         })]);
         setFixedCosts(f.data || []);
-        setBranchStock((bsRes2.data || []).map(branchStockFromDb));
+        // branch_stock giờ đã tải công khai ở effect chính phía trên, không cần tải lại ở đây.
         setIngredients((igRes2.data || []).map(ingredientFromDb));
         setStockReceipts((srRes2.data || []).map(receiptFromDb));
         if (bkRes2.data) setBankInfo({
