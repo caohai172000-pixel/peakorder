@@ -1798,6 +1798,7 @@ function App() {
   const [approvalStatus, setApprovalStatus] = useState(null); // pending | active | suspended | rejected | not_found
   const [saveErr, setSaveErr] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [staffDataReady, setStaffDataReady] = useState(false);
   const initialUrlParams = useMemo(() => new URLSearchParams(window.location.search), []);
   const initialPathShop = useMemo(() => {
     const seg = window.location.pathname.split("/").filter(Boolean)[0];
@@ -1927,6 +1928,7 @@ function App() {
   // khi ai đăng nhập cả) — được tải ở effect chính phía trên.
   useEffect(() => {
     if (!shopId || !currentUser) return;
+    setStaffDataReady(false);
     (async () => {
       try {
         const [f, bsRes2, igRes2, bkRes2, srRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
@@ -1943,6 +1945,8 @@ function App() {
         });
       } catch (e) {
         console.error("post-login data load error", e);
+      } finally {
+        setStaffDataReady(true);
       }
     })();
   }, [shopId, currentUser]);
@@ -2140,7 +2144,8 @@ function App() {
     currentUser: currentUser,
     stockReceipts: stockReceipts,
     setStockReceipts: setStockReceipts,
-    shopId: shopId
+    shopId: shopId,
+    staffDataReady: staffDataReady
   }), visibleTab === "orders" && /*#__PURE__*/React.createElement(Orders, {
     orders: orders,
     branches: branches,
@@ -6774,7 +6779,8 @@ function Inventory({
   currentUser,
   stockReceipts,
   setStockReceipts,
-  shopId
+  shopId,
+  staffDataReady
 }) {
   const isOwner = currentUser.role === "owner";
   const [section, setSection] = useState("kho"); // owner: "kho"|"nhap"|"huy" — staff: chỉ "kho"
@@ -6950,7 +6956,14 @@ function Inventory({
       color: MUTED,
       marginBottom: 14
     }
-  }, "Tổng tồn kho cộng dồn từ ", branches.length, " chi nhánh — chỉ để xem, muốn chỉnh số lượng vào từng chi nhánh riêng."), lowStock.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "Tổng tồn kho cộng dồn từ ", branches.length, " chi nhánh — chỉ để xem, muốn chỉnh số lượng vào từng chi nhánh riêng."), !staffDataReady ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: MUTED,
+      textAlign: "center",
+      padding: "24px 0"
+    }
+  }, "Đang tải tồn kho…") : /*#__PURE__*/React.createElement(React.Fragment, null, lowStock.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       background: "#FFDAD3",
       border: "1px solid #F3B7B0",
@@ -7041,7 +7054,7 @@ function Inventory({
     }, low && /*#__PURE__*/React.createElement(AlertTriangle, {
       size: 12
     }), " ", stock, " ", p.unit)));
-  }))));
+  })))));
 }
 function StockReceiveForm({
   products,
