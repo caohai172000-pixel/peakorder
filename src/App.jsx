@@ -1829,11 +1829,9 @@ function App() {
     }
     (async () => {
       try {
-        const [shopRes, p, b, s, f, bk, o, ss, bsRes, srRes, igRes, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url,slogan").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
+        const [shopRes, p, b, s, o, ss, prRes, resvRes] = await Promise.all([sb.from("shops").select("name,status,logo_url,slogan").eq("id", shopId).maybeSingle(), sb.from("products").select("*").eq("shop_id", shopId), sb.from("branches").select("id,shop_id,name,address,phone,active,created_at").eq("shop_id", shopId).order("created_at"), sb.from("staff").select("id,shop_id,name,role,branch,created_at").eq("shop_id", shopId).order("created_at"), sb.from("orders").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
-        }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
-          ascending: false
-        }), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("payment_requests").select("*").eq("shop_id", shopId).order("created_at", {
+        }), sb.from("shop_status").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("payment_requests").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
         }), sb.from("table_reservations").select("*").eq("shop_id", shopId).order("created_at", {
           ascending: false
@@ -1844,22 +1842,10 @@ function App() {
         let prodRows = p.data || [];
         let branchRows = b.data || [];
         let staffRows = s.data || [];
-        let costRows = f.data || [];
-        let stockRows = bsRes.data || [];
-        let ingRows = igRes.data || [];
         setProducts(prodRows.map(productFromDb));
         setBranches(branchRows.map(branchFromDb));
         setBranch(branchRows[0] ? branchRows[0].name : "");
         setStaff(staffRows);
-        setFixedCosts(costRows);
-        setBranchStock(stockRows.map(branchStockFromDb));
-        setStockReceipts((srRes.data || []).map(receiptFromDb));
-        setIngredients(ingRows.map(ingredientFromDb));
-        if (bk.data) setBankInfo({
-          bankCode: bk.data.bank_code || "",
-          accountNo: bk.data.account_no || "",
-          accountName: bk.data.account_name || ""
-        });
         if (ss.data) setShopStatus({
           isOpen: ss.data.is_open,
           reopenDate: ss.data.reopen_date
@@ -1943,10 +1929,13 @@ function App() {
     if (!shopId || !currentUser) return;
     (async () => {
       try {
-        const [f, bsRes2, igRes2, bkRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle()]);
+        const [f, bsRes2, igRes2, bkRes2, srRes2] = await Promise.all([sb.from("fixed_costs").select("*").eq("shop_id", shopId), sb.from("branch_stock").select("*").eq("shop_id", shopId), sb.from("ingredients").select("*").eq("shop_id", shopId).order("created_at"), sb.from("bank_info").select("*").eq("shop_id", shopId).maybeSingle(), sb.from("stock_receipts").select("*").eq("shop_id", shopId).order("created_at", {
+          ascending: false
+        })]);
         setFixedCosts(f.data || []);
         setBranchStock((bsRes2.data || []).map(branchStockFromDb));
         setIngredients((igRes2.data || []).map(ingredientFromDb));
+        setStockReceipts((srRes2.data || []).map(receiptFromDb));
         if (bkRes2.data) setBankInfo({
           bankCode: bkRes2.data.bank_code || "",
           accountNo: bkRes2.data.account_no || "",
