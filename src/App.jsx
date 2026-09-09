@@ -594,19 +594,20 @@ function EmptyBowlArt({
 // (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
 // Chữ "peakorder" đầy đủ, lặp lại rải rác ngẫu nhiên làm nền
 const WORD_BACKDROP_ITEMS = [
-  { top: "3%", left: "4%", size: 40, rot: -10 },
-  { top: "9%", left: "58%", size: 30, rot: 8 },
-  { top: "24%", left: "22%", size: 46, rot: -6 },
-  { top: "37%", left: "70%", size: 32, rot: 12 },
-  { top: "52%", left: "2%", size: 36, rot: 9 },
-  { top: "66%", left: "48%", size: 42, rot: -8 },
-  { top: "81%", left: "18%", size: 30, rot: 6 }
+  { top: "-5%", left: "-10%", size: 150, rot: -12 },
+  { top: "4%", left: "44%", size: 130, rot: 9 },
+  { top: "19%", left: "-8%", size: 190, rot: -16 },
+  { top: "33%", left: "40%", size: 145, rot: 7 },
+  { top: "46%", left: "-12%", size: 165, rot: -10 },
+  { top: "58%", left: "48%", size: 200, rot: 13 },
+  { top: "74%", left: "-10%", size: 150, rot: -8 },
+  { top: "87%", left: "38%", size: 165, rot: -6 }
 ];
-// 3 địa danh Việt Nam, nét vẽ trắng đơn giản hóa
+// 3 địa danh Việt Nam, nét vẽ trắng, chi tiết hơn — kích thước lớn
 const LANDMARK_ITEMS = [
-  { top: "14%", left: "72%", size: 110, rot: -6, kind: "benthanh" },
-  { top: "60%", left: "6%", size: 100, rot: 5, kind: "quoctugiam" },
-  { top: "84%", left: "58%", size: 100, rot: -4, kind: "hue" }
+  { top: "12%", left: "68%", size: 230, rot: -6, kind: "benthanh" },
+  { top: "58%", left: "2%", size: 210, rot: 5, kind: "quoctugiam" },
+  { top: "82%", left: "54%", size: 220, rot: -4, kind: "hue" }
 ];
 function LandmarkIcon({
   kind,
@@ -619,7 +620,7 @@ function LandmarkIcon({
     viewBox: "0 0 120 120",
     fill: "none",
     stroke: "#fff",
-    strokeWidth: 2,
+    strokeWidth: 1.6,
     strokeLinecap: "round",
     strokeLinejoin: "round",
     opacity: 0.4,
@@ -627,61 +628,101 @@ function LandmarkIcon({
       transform: `rotate(${rot}deg)`
     }
   };
-  // Chợ Bến Thành — tháp đồng hồ mái vòm
+  // Chợ Bến Thành — tháp đồng hồ mái vòm, 2 cánh phụ, mái ngói, họa tiết đồng hồ
   if (kind === "benthanh") {
     return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
       d: "M50 108h20V70h-20z"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M44 70h32l-4-14H48z"
     }), /*#__PURE__*/React.createElement("path", {
+      d: "M46.5 70v-4.5h27V70"
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M52 56h16v-8H52z"
     }), /*#__PURE__*/React.createElement("circle", {
       cx: "60",
       cy: "38",
       r: "10"
+    }), /*#__PURE__*/React.createElement("circle", {
+      cx: "60",
+      cy: "38",
+      r: "6.4"
     }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 32v6l4 3"
+      d: "M60 34v4l3 2"
     }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 16v6"
+      d: "M60 30v1.4M60 45.6V47M50.4 38h1.4M68.2 38h1.4"
     }), /*#__PURE__*/React.createElement("path", {
-      d: "M14 108h92"
+      d: "M60 32v-16"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M55 16h10l-5-7z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M6 108h108"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M10 108V86h34v22M76 108V86h34v22"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M10 86l17-10 17 10M76 86l17-10 17 10"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M16 108V94h6v14M40 108V94h6v14M82 108V94h6v14M106 108V94h6v14"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M18 108V80h20v28M82 108V80h20v28"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M24 98h8M92 98h8"
     }));
   }
-  // Quốc Tử Giám — Khuê Văn Các (gác 2 tầng, mái cong, 4 cột)
+  // Quốc Tử Giám — Khuê Văn Các (gác 2 tầng, mái cong, 4 cột, hồ sen phía trước, lan can)
   if (kind === "quoctugiam") {
     return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
+      d: "M14 112h92"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M18 112c6-3 12-3 18 0M84 112c6-3 12-3 18 0"
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M30 108h60"
     }), /*#__PURE__*/React.createElement("path", {
-      d: "M38 108V60M50 108V60M70 108V60M82 108V60"
+      d: "M34 108V64h4v44M46 108V64h4v44M70 108V64h4v44M82 108V64h4v44"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M38 78h6M38 90h6M76 78h6M76 90h6"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M34 60h52v-8H34z"
     }), /*#__PURE__*/React.createElement("path", {
+      d: "M40 56v-4h40v4"
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M26 52 Q60 38 94 52 L88 60 Q60 48 32 60 Z"
     }), /*#__PURE__*/React.createElement("path", {
+      d: "M32 54 Q60 42 88 54"
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M44 44h32v-14H44z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M50 44V30M60 44V30M70 44V30"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M36 30 Q60 18 84 30 L80 36 Q60 26 40 36 Z"
     }), /*#__PURE__*/React.createElement("circle", {
       cx: "60",
       cy: "37",
       r: "5"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: "M60 14v6"
     }));
   }
-  // Kinh Thành Huế — Kỳ Đài (cột cờ nhiều tầng trên nền thành)
+  // Kinh Thành Huế — Kỳ Đài (cột cờ nhiều tầng trên nền thành, lá cờ, tường thành có chấn song)
   return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-    d: "M10 108h100"
+    d: "M4 112h112"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M20 108V88h80v20"
+    d: "M14 112V92h92v20"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M34 88V72h52v16"
+    d: "M14 92l3-8h86l3 8"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M46 72V58h28v14"
+    d: "M22 112V98M32 112V98M42 112V98M52 112V98M68 112V98M78 112V98M88 112V98M98 112V98"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M60 58V14"
+    d: "M30 84V70h60v14"
   }), /*#__PURE__*/React.createElement("path", {
-    d: "M60 18h22v14H60z"
+    d: "M42 70V56h36v14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M54 56V42h12v14"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M60 42V10"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M60 12h26l-8 7 8 7H60z"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M34 84h52M46 70h28"
   }));
 }
 function LetterBackdrop({
@@ -704,6 +745,8 @@ function LetterBackdrop({
       top: it.top,
       left: it.left,
       fontSize: it.size,
+      fontWeight: 700,
+      letterSpacing: "-0.02em",
       color,
       transform: `rotate(${it.rot}deg)`,
       lineHeight: 1,
@@ -9850,7 +9893,7 @@ function CustomerOrder({
       style: {
         fontFamily: "'Inter', sans-serif",
         minHeight: "100vh",
-        background: "#FFC700",
+        background: "#fff",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -10235,7 +10278,7 @@ function CustomerOrder({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Inter', sans-serif",
-      background: "#FFC700",
+      background: "#fff",
       color: INK,
       minHeight: "100vh"
     }
