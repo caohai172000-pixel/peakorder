@@ -2187,7 +2187,9 @@ function App() {
     setBranches: setBranches,
     isMobile: isMobile,
     shopName: shopName,
-    shopId: shopId
+    shopId: shopId,
+    setBranchStock: setBranchStock,
+    setFixedCosts: setFixedCosts
   }), visibleTab === "channels" && /*#__PURE__*/React.createElement(SalesChannels, {
     branches: branches,
     shopName: shopName,
@@ -6784,12 +6786,9 @@ function Inventory({
   shopId
 }) {
   const isOwner = currentUser.role === "owner";
-  const [mode, setMode] = useState("branch"); // owner: "branch"|"total"|"receive" — staff: "branch"|"history"
+  const [section, setSection] = useState("kho"); // owner: "kho"|"nhap"|"huy" — staff: chỉ "kho"
+  const [khoView, setKhoView] = useState("branch"); // "tong" | "branch" — chỉ áp dụng khi section === "kho"
   const [viewBranch, setViewBranch] = useState(isOwner ? branches[0] ? branches[0].name : "" : currentUser.branch);
-  const adjust = (productId, delta) => setBranchStock(bs => {
-    adjustStockRow(shopId, viewBranch, productId, delta);
-    return withStockDelta(bs, viewBranch, productId, delta);
-  });
   const rowsBranch = [...products].map(p => ({
     p,
     stock: stockOf(branchStock, viewBranch, p.id)
@@ -6800,9 +6799,10 @@ function Inventory({
     stock: totalStockOf(branchStock, p.id)
   })).sort((a, b) => a.stock - b.stock);
   const lowStockTotal = rowsTotal.filter(r => r.stock <= 5);
-  const showTotal = isOwner && mode === "total";
-  const showReceive = isOwner && mode === "receive";
-  const showHistory = !isOwner && mode === "history";
+  const showTotal = isOwner && section === "kho" && khoView === "tong";
+  const showReceive = isOwner && section === "nhap";
+  const showWriteOff = isOwner && section === "huy";
+  const showHistory = !isOwner && section === "history";
   const rows = showTotal ? rowsTotal : rowsBranch;
   const lowStock = showTotal ? lowStockTotal : lowStockBranch;
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
@@ -6835,43 +6835,56 @@ function Inventory({
       borderRadius: 8,
       padding: 2
     }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMode("branch"),
+  }, [{
+    key: "kho",
+    label: "Kho hàng"
+  }, {
+    key: "nhap",
+    label: "Nhập hàng"
+  }, {
+    key: "huy",
+    label: "Hủy hàng"
+  }].map(it => /*#__PURE__*/React.createElement("button", {
+    key: it.key,
+    onClick: () => setSection(it.key),
     style: {
       padding: "6px 12px",
       borderRadius: 6,
       border: "none",
-      background: mode === "branch" ? "#fff" : "none",
-      boxShadow: mode === "branch" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
+      background: section === it.key ? "#fff" : "none",
+      boxShadow: section === it.key ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
       fontSize: 12,
       fontWeight: 600,
-      color: mode === "branch" ? INK : MUTED
+      color: section === it.key ? INK : MUTED
     }
-  }, "Theo chi nhánh"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMode("total"),
+  }, it.label))), section === "kho" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      background: PAPER,
+      border: `1px solid ${LINE}`,
+      borderRadius: 8,
+      padding: 2
+    }
+  }, [{
+    key: "tong",
+    label: "Tổng kho"
+  }, {
+    key: "branch",
+    label: "Điểm bán"
+  }].map(it => /*#__PURE__*/React.createElement("button", {
+    key: it.key,
+    onClick: () => setKhoView(it.key),
     style: {
       padding: "6px 12px",
       borderRadius: 6,
       border: "none",
-      background: mode === "total" ? "#fff" : "none",
-      boxShadow: mode === "total" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
+      background: khoView === it.key ? "#fff" : "none",
+      boxShadow: khoView === it.key ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
       fontSize: 12,
       fontWeight: 600,
-      color: mode === "total" ? INK : MUTED
+      color: khoView === it.key ? INK : MUTED
     }
-  }, "Kho tổng"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMode("receive"),
-    style: {
-      padding: "6px 12px",
-      borderRadius: 6,
-      border: "none",
-      background: mode === "receive" ? "#fff" : "none",
-      boxShadow: mode === "receive" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
-      fontSize: 12,
-      fontWeight: 600,
-      color: mode === "receive" ? INK : MUTED
-    }
-  }, "Nhập hàng")), mode === "branch" && /*#__PURE__*/React.createElement("select", {
+  }, it.label))), section === "kho" && khoView === "branch" && /*#__PURE__*/React.createElement("select", {
     value: viewBranch,
     onChange: e => setViewBranch(e.target.value),
     style: {
@@ -6890,28 +6903,28 @@ function Inventory({
       padding: 2
     }
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMode("branch"),
+    onClick: () => setSection("kho"),
     style: {
       padding: "6px 12px",
       borderRadius: 6,
       border: "none",
-      background: mode === "branch" ? "#fff" : "none",
-      boxShadow: mode === "branch" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
+      background: section === "kho" ? "#fff" : "none",
+      boxShadow: section === "kho" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
       fontSize: 12,
       fontWeight: 600,
-      color: mode === "branch" ? INK : MUTED
+      color: section === "kho" ? INK : MUTED
     }
   }, "Kho của tôi"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMode("history"),
+    onClick: () => setSection("history"),
     style: {
       padding: "6px 12px",
       borderRadius: 6,
       border: "none",
-      background: mode === "history" ? "#fff" : "none",
-      boxShadow: mode === "history" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
+      background: section === "history" ? "#fff" : "none",
+      boxShadow: section === "history" ? "0 1px 3px rgba(43,26,14,0.1)" : "none",
       fontSize: 12,
       fontWeight: 600,
-      color: mode === "history" ? INK : MUTED
+      color: section === "history" ? INK : MUTED
     }
   }, "Lịch sử nhập hàng"))), showReceive && /*#__PURE__*/React.createElement(StockReceiveForm, {
     products: products,
@@ -6921,9 +6934,18 @@ function Inventory({
     stockReceipts: stockReceipts,
     currentUser: currentUser,
     shopId: shopId
+  }), showWriteOff && /*#__PURE__*/React.createElement(StockReceiveForm, {
+    products: products,
+    branches: branches,
+    setBranchStock: setBranchStock,
+    setStockReceipts: setStockReceipts,
+    stockReceipts: stockReceipts,
+    currentUser: currentUser,
+    shopId: shopId,
+    isWriteOff: true
   }), showHistory && /*#__PURE__*/React.createElement(StockReceiptHistory, {
     receipts: stockReceipts.filter(r => r.branch === currentUser.branch)
-  }), !showReceive && !showHistory && /*#__PURE__*/React.createElement(React.Fragment, null, !isOwner && /*#__PURE__*/React.createElement("div", {
+  }), !showReceive && !showWriteOff && !showHistory && /*#__PURE__*/React.createElement(React.Fragment, null, !isOwner && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: MUTED,
@@ -7025,36 +7047,7 @@ function Inventory({
       }
     }, low && /*#__PURE__*/React.createElement(AlertTriangle, {
       size: 12
-    }), " ", stock, " ", p.unit)), !showTotal && isOwner && /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        gap: 8,
-        marginTop: 10,
-        justifyContent: "flex-end"
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: () => adjust(p.id, -1),
-      style: {
-        width: 30,
-        height: 30,
-        borderRadius: 7,
-        border: `1px solid ${LINE}`,
-        background: "#fff"
-      }
-    }, /*#__PURE__*/React.createElement(Minus, {
-      size: 13
-    })), /*#__PURE__*/React.createElement("button", {
-      onClick: () => adjust(p.id, 1),
-      style: {
-        width: 30,
-        height: 30,
-        borderRadius: 7,
-        border: `1px solid ${LINE}`,
-        background: "#fff"
-      }
-    }, /*#__PURE__*/React.createElement(Plus, {
-      size: 13
-    }))));
+    }), " ", stock, " ", p.unit)));
   }))));
 }
 function StockReceiveForm({
@@ -7064,7 +7057,8 @@ function StockReceiveForm({
   setStockReceipts,
   stockReceipts,
   currentUser,
-  shopId
+  shopId,
+  isWriteOff = false
 }) {
   const [branch, setBranch] = useState(branches.find(b => b.active !== false)?.name || branches[0]?.name || "");
   const [items, setItems] = useState([]);
@@ -7091,6 +7085,7 @@ function StockReceiveForm({
   const removeItem = pid => setItems(it => it.filter(i => i.productId !== pid));
   const save = () => {
     if (!branch || items.length === 0) return;
+    const sign = isWriteOff ? -1 : 1;
     const receipt = {
       id: uid(),
       branch,
@@ -7099,7 +7094,7 @@ function StockReceiveForm({
         return {
           productId: i.productId,
           name: p ? p.name : "",
-          qty: i.qty
+          qty: i.qty * sign
         };
       }),
       note: note.trim() || null,
@@ -7146,7 +7141,7 @@ function StockReceiveForm({
       color: MUTED,
       marginBottom: 4
     }
-  }, "Chi nhánh nhận hàng"), /*#__PURE__*/React.createElement("select", {
+  }, isWriteOff ? "Chi nhánh hủy hàng" : "Chi nhánh nhận hàng"), /*#__PURE__*/React.createElement("select", {
     value: branch,
     onChange: e => setBranch(e.target.value),
     style: {
@@ -7162,7 +7157,7 @@ function StockReceiveForm({
       color: MUTED,
       marginBottom: 4
     }
-  }, "Thêm sản phẩm vào đợt nhập"), /*#__PURE__*/React.createElement("div", {
+  }, isWriteOff ? "Thêm sản phẩm cần hủy (hỏng/nhầm lẫn...)" : "Thêm sản phẩm vào đợt nhập"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 90px auto",
@@ -7254,7 +7249,7 @@ function StockReceiveForm({
       fontSize: 13,
       fontWeight: 700
     }
-  }, "Lưu đợt nhập hàng"), saved && /*#__PURE__*/React.createElement("span", {
+  }, isWriteOff ? "Lưu phiếu hủy hàng" : "Lưu đợt nhập hàng"), saved && /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12.5,
       color: JADE_DARK,
@@ -8371,7 +8366,9 @@ function Staff({
   setBranches,
   isMobile,
   shopName,
-  shopId
+  shopId,
+  setBranchStock,
+  setFixedCosts
 }) {
   const [confirmDelete, setConfirmDelete] = useState(null); // { type: "admin"|"emp", id, label } | null
   // --- Điểm bán ---
@@ -8445,6 +8442,24 @@ function Staff({
           }),
           shop_id: shopId
         });
+        // Cập nhật theo tên mới ở mọi bảng khác đang tham chiếu chi nhánh
+        // theo tên (branch_stock, orders, stock_receipts, fixed_costs) —
+        // nếu không, dữ liệu cũ bị "mồ côi" dưới tên cũ, nhìn như mất sạch.
+        await Promise.all([sb.from("branch_stock").update({
+          branch: nm
+        }).eq("branch", oldName).eq("shop_id", shopId), sb.from("orders").update({
+          branch: nm
+        }).eq("branch", oldName).eq("shop_id", shopId), sb.from("stock_receipts").update({
+          branch: nm
+        }).eq("branch", oldName).eq("shop_id", shopId), sb.from("fixed_costs").update({
+          branch: nm
+        }).eq("branch", oldName).eq("shop_id", shopId)]);
+        setBranchStock(bs => bs.map(r => r.branch === oldName ? { ...r,
+          branch: nm
+        } : r));
+        setFixedCosts(fc => fc.map(r => r.branch === oldName ? { ...r,
+          branch: nm
+        } : r));
       } else {
         await sb.from("branches").update({
           address: patch.address,
