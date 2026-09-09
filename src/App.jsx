@@ -489,10 +489,12 @@ async function adjustStockRow(shopId, branch, productId, delta) {
     p_delta: delta
   });
   if (error) console.error("adjust_branch_stock", error);
+  return error;
 }
 async function adjustStockRows(shopId, branch, deltasByProductId) {
   const entries = Object.entries(deltasByProductId);
-  await Promise.all(entries.map(([productId, delta]) => adjustStockRow(shopId, branch, productId, delta)));
+  const results = await Promise.all(entries.map(([productId, delta]) => adjustStockRow(shopId, branch, productId, delta)));
+  return results.find(e => e) || null;
 }
 
 // ---- icon đơn giản (thay cho lucide-react) ----
@@ -7097,7 +7099,7 @@ function StockReceiveForm({
     setPendingQty("");
   };
   const removeItem = pid => setItems(it => it.filter(i => i.productId !== pid));
-  const save = () => {
+  const save = async () => {
     if (!branch || items.length === 0) return;
     const sign = isWriteOff ? -1 : 1;
     const fullNote = isWriteOff ? `[${reason}]${note.trim() ? " " + note.trim() : ""}` : note.trim() || null;
@@ -7116,12 +7118,16 @@ function StockReceiveForm({
       createdBy: currentUser.name,
       createdAt: new Date().toISOString()
     };
+    const deltas = {};
+    receipt.items.forEach(it => {
+      deltas[it.productId] = (deltas[it.productId] || 0) + it.qty;
+    });
+    const stockErr = await adjustStockRows(shopId, branch, deltas);
+    if (stockErr) {
+      setErr("Không lưu được vào tồn kho: " + stockErr.message);
+      return;
+    }
     setBranchStock(bs => {
-      const deltas = {};
-      receipt.items.forEach(it => {
-        deltas[it.productId] = (deltas[it.productId] || 0) + it.qty;
-      });
-      adjustStockRows(shopId, branch, deltas);
       let next = bs;
       receipt.items.forEach(it => {
         next = withStockDelta(next, branch, it.productId, it.qty);
