@@ -247,6 +247,15 @@ const RUST = "#BA1A1A";
 const MUTED = "#7D6E63";
 const LINE = "#D9C9B4";
 const fmt = n => new Intl.NumberFormat("vi-VN").format(Math.round(n || 0)) + "đ";
+// Trạng thái bật/tắt từng kênh phục vụ (đặt hàng/gọi món/đặt bàn) ở màn
+// chào mừng — mặc định bật hết, và luôn có đủ 3 khoá dù dữ liệu cũ/thiếu.
+function normalizeChannels(raw) {
+  return {
+    order: raw && raw.order === false ? false : true,
+    dinein: raw && raw.dinein === false ? false : true,
+    reserve: raw && raw.reserve === false ? false : true
+  };
+}
 const uid = () => Math.random().toString(36).slice(2, 10);
 const todayStr = () => new Date().toISOString().slice(0, 10);
 function slugify(text) {
@@ -1829,7 +1838,12 @@ function App() {
   });
   const [shopStatus, setShopStatus] = useState({
     isOpen: true,
-    reopenDate: null
+    reopenDate: null,
+    channels: {
+      order: true,
+      dinein: true,
+      reserve: true
+    }
   });
   const [branchStock, setBranchStock] = useState([]);
   const [stockReceipts, setStockReceipts] = useState([]);
@@ -1897,7 +1911,8 @@ function App() {
         if (!bsRes.error) setBranchStock((bsRes.data || []).map(branchStockFromDb));
         if (ss.data) setShopStatus({
           isOpen: ss.data.is_open,
-          reopenDate: ss.data.reopen_date
+          reopenDate: ss.data.reopen_date,
+          channels: normalizeChannels(ss.data.channels)
         });
         setOrders((o.data || []).map(orderFromDb));
         setShopName(shopRes.data ? shopRes.data.name : "");
@@ -1943,7 +1958,8 @@ function App() {
     }, payload => {
       if (payload.new) setShopStatus({
         isOpen: payload.new.is_open,
-        reopenDate: payload.new.reopen_date
+        reopenDate: payload.new.reopen_date,
+        channels: normalizeChannels(payload.new.channels)
       });
     }).on("postgres_changes", {
       event: "*",
@@ -2017,7 +2033,8 @@ function App() {
           }), sb.from("shop_status").upsert({
             shop_id: shopId,
             is_open: shopStatus.isOpen,
-            reopen_date: shopStatus.reopenDate || null
+            reopen_date: shopStatus.reopenDate || null,
+            channels: normalizeChannels(shopStatus.channels)
           }, {
             onConflict: "shop_id"
           })]);
@@ -4003,27 +4020,48 @@ function StartScreen({
     color: "#5B6B3A"
   }].map(it => {
     const active = channelPick === it.key;
+    const enabled = normalizeChannels(shopStatus && shopStatus.channels)[it.key];
     return /*#__PURE__*/React.createElement("button", {
       key: it.key,
+      disabled: !enabled,
       onClick: () => {
+        if (!enabled) return;
         setChannelPick(it.key);
         it.onClick();
       },
       style: {
+        position: "relative",
         aspectRatio: "1.3",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
-        background: active ? it.color : "#E2E0D6",
+        background: !enabled ? "#EFEDE4" : active ? it.color : "#E2E0D6",
         border: "none",
         borderRadius: 12,
-        color: active ? "#fff" : "#7D7568"
+        color: !enabled ? "#B4AC9C" : active ? "#fff" : "#7D7568",
+        opacity: enabled ? 1 : 0.75,
+        cursor: enabled ? "pointer" : "not-allowed"
       }
-    }, /*#__PURE__*/React.createElement(it.icon, {
+    }, !enabled && /*#__PURE__*/React.createElement("span", {
+      style: {
+        position: "absolute",
+        top: 5,
+        left: "50%",
+        transform: "translateX(-50%)",
+        fontSize: 8.5,
+        fontWeight: 700,
+        letterSpacing: 0.3,
+        color: "#fff",
+        background: "#B4AC9C",
+        borderRadius: 20,
+        padding: "2px 6px",
+        whiteSpace: "nowrap"
+      }
+    }, "Sắp ra mắt"), /*#__PURE__*/React.createElement(it.icon, {
       size: 18,
-      color: active ? "#fff" : "#7D7568"
+      color: !enabled ? "#B4AC9C" : active ? "#fff" : "#7D7568"
     }), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 10.5,
@@ -8282,6 +8320,7 @@ function Costs({
     }
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setShopStatus({
+      ...shopStatus,
       isOpen: true,
       reopenDate: null
     }),
@@ -8351,6 +8390,62 @@ function Costs({
       ...inputStyle,
       width: "auto"
     }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "disp",
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      marginBottom: 6
+    }
+  }, "Kênh phục vụ trên trang chào mừng"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: MUTED,
+      marginBottom: 12
+    }
+  }, "Tắt kênh nào thì nút đó vẫn hiện trên màn chào mừng nhưng có nhãn \"Sắp ra mắt\" và khách không bấm vào được."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      marginBottom: 20,
+      flexWrap: "wrap"
+    }
+  }, [{
+    key: "order",
+    label: "Đặt hàng"
+  }, {
+    key: "dinein",
+    label: "Gọi món"
+  }, {
+    key: "reserve",
+    label: "Đặt bàn"
+  }].map(ch => {
+    const enabled = normalizeChannels(shopStatus?.channels)[ch.key];
+    return /*#__PURE__*/React.createElement("button", {
+      key: ch.key,
+      onClick: () => setShopStatus({
+        ...shopStatus,
+        channels: {
+          ...normalizeChannels(shopStatus?.channels),
+          [ch.key]: !enabled
+        }
+      }),
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "9px 14px",
+        borderRadius: 8,
+        border: `1px solid ${enabled ? "#486842" : LINE}`,
+        background: enabled ? "#EFFAF3" : "#F4F2EA",
+        color: enabled ? "#166534" : MUTED,
+        fontSize: 13,
+        fontWeight: 600
+      }
+    }, /*#__PURE__*/React.createElement(StatusDot, {
+      isOpen: enabled,
+      size: 8
+    }), ch.label, " · ", enabled ? "Đang bật" : "Sắp ra mắt");
   })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
