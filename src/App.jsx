@@ -612,12 +612,37 @@ const WORD_BACKDROP_ITEMS = [
   { top: "74%", left: "-10%", size: 150, rot: -8 },
   { top: "87%", left: "38%", size: 165, rot: -6 }
 ];
-// 3 địa danh Việt Nam, nét vẽ trắng, chi tiết hơn — kích thước lớn
+// Bố cục riêng cho mobile: ít chữ hơn, size nhỏ hơn, giãn cách theo chiều
+// dọc rộng rãi hơn để không bị chồng/dính chữ lên nhau như trên màn hẹp.
+const WORD_BACKDROP_ITEMS_MOBILE = [
+  { top: "2%", left: "-8%", size: 62, rot: -8 },
+  { top: "16%", left: "48%", size: 54, rot: 8 },
+  { top: "32%", left: "-10%", size: 58, rot: -6 },
+  { top: "48%", left: "46%", size: 60, rot: 7 },
+  { top: "64%", left: "-8%", size: 56, rot: -8 },
+  { top: "80%", left: "44%", size: 58, rot: 6 }
+];
+// 3 địa danh Việt Nam, phong cách khắc nét cổ điển (etching) — nét chính đậm
+// + nét hatch mảnh tạo bóng đổ, trông có chiều sâu hơn nét vẽ phẳng
 const LANDMARK_ITEMS = [
   { top: "12%", left: "68%", size: 230, rot: -6, kind: "benthanh" },
   { top: "58%", left: "2%", size: 210, rot: 5, kind: "quoctugiam" },
   { top: "82%", left: "54%", size: 220, rot: -4, kind: "hue" }
 ];
+// Vài nét hatch chéo mảnh, dùng lặp lại để tạo vùng đổ bóng kiểu khắc gỗ
+function hatchLines(x, y, w, h, gap = 4, angle = 38) {
+  const rad = angle * Math.PI / 180;
+  const dx = Math.cos(rad) * h / Math.tan(rad);
+  const lines = [];
+  for (let off = 0; off < w + h; off += gap) {
+    const x1 = x + off;
+    const y1 = y;
+    const x2 = x + off - h / Math.tan(rad);
+    const y2 = y + h;
+    lines.push(`M${Math.max(x, Math.min(x + w, x1)).toFixed(1)} ${y1} L${Math.max(x, Math.min(x + w, x2)).toFixed(1)} ${y2}`);
+  }
+  return lines.join(" ");
+}
 function LandmarkIcon({
   kind,
   size,
@@ -637,10 +662,19 @@ function LandmarkIcon({
       transform: `rotate(${rot}deg)`
     }
   };
+  const hatch = {
+    stroke: "#fff",
+    strokeWidth: 0.7,
+    strokeLinecap: "round",
+    opacity: 0.22
+  };
   // Chợ Bến Thành — tháp đồng hồ mái vòm, 2 cánh phụ, mái ngói, họa tiết đồng hồ
   if (kind === "benthanh") {
     return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
       d: "M50 108h20V70h-20z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: hatchLines(50, 70, 20, 38, 3.4, 32),
+      ...hatch
     }), /*#__PURE__*/React.createElement("path", {
       d: "M44 70h32l-4-14H48z"
     }), /*#__PURE__*/React.createElement("path", {
@@ -668,6 +702,9 @@ function LandmarkIcon({
     }), /*#__PURE__*/React.createElement("path", {
       d: "M10 108V86h34v22M76 108V86h34v22"
     }), /*#__PURE__*/React.createElement("path", {
+      d: hatchLines(76, 86, 34, 22, 3, 40),
+      ...hatch
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M10 86l17-10 17 10M76 86l17-10 17 10"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M16 108V94h6v14M40 108V94h6v14M82 108V94h6v14M106 108V94h6v14"
@@ -688,6 +725,9 @@ function LandmarkIcon({
     }), /*#__PURE__*/React.createElement("path", {
       d: "M34 108V64h4v44M46 108V64h4v44M70 108V64h4v44M82 108V64h4v44"
     }), /*#__PURE__*/React.createElement("path", {
+      d: hatchLines(50, 64, 20, 44, 3.4, 38),
+      ...hatch
+    }), /*#__PURE__*/React.createElement("path", {
       d: "M38 78h6M38 90h6M76 78h6M76 90h6"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M34 60h52v-8H34z"
@@ -695,6 +735,9 @@ function LandmarkIcon({
       d: "M40 56v-4h40v4"
     }), /*#__PURE__*/React.createElement("path", {
       d: "M26 52 Q60 38 94 52 L88 60 Q60 48 32 60 Z"
+    }), /*#__PURE__*/React.createElement("path", {
+      d: hatchLines(32, 52, 56, 8, 3, 150),
+      ...hatch
     }), /*#__PURE__*/React.createElement("path", {
       d: "M32 54 Q60 42 88 54"
     }), /*#__PURE__*/React.createElement("path", {
@@ -717,6 +760,9 @@ function LandmarkIcon({
   }), /*#__PURE__*/React.createElement("path", {
     d: "M14 112V92h92v20"
   }), /*#__PURE__*/React.createElement("path", {
+    d: hatchLines(14, 92, 92, 20, 3.6, 40),
+    ...hatch
+  }), /*#__PURE__*/React.createElement("path", {
     d: "M14 92l3-8h86l3 8"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M22 112V98M32 112V98M42 112V98M52 112V98M68 112V98M78 112V98M88 112V98M98 112V98"
@@ -731,12 +777,21 @@ function LandmarkIcon({
   }), /*#__PURE__*/React.createElement("path", {
     d: "M60 12h26l-8 7 8 7H60z"
   }), /*#__PURE__*/React.createElement("path", {
+    d: hatchLines(60, 12, 26, 14, 3, 145),
+    stroke: "#fff",
+    strokeWidth: 0.7,
+    opacity: 0.18
+  }), /*#__PURE__*/React.createElement("path", {
     d: "M34 84h52M46 70h28"
   }));
 }
 function LetterBackdrop({
   color = "#EAB300"
 }) {
+  const isMobile = useIsMobile();
+  const wordItems = isMobile ? WORD_BACKDROP_ITEMS_MOBILE : WORD_BACKDROP_ITEMS;
+  const landmarkItems = isMobile ? LANDMARK_ITEMS.slice(0, 2) : LANDMARK_ITEMS;
+  const landmarkScale = isMobile ? 0.55 : 1;
   return /*#__PURE__*/React.createElement("div", {
     "aria-hidden": "true",
     style: {
@@ -746,7 +801,7 @@ function LetterBackdrop({
       zIndex: 0,
       pointerEvents: "none"
     }
-  }, WORD_BACKDROP_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("span", {
+  }, wordItems.map((it, i) => /*#__PURE__*/React.createElement("span", {
     key: i,
     className: "disp",
     style: {
@@ -755,14 +810,15 @@ function LetterBackdrop({
       left: it.left,
       fontSize: it.size,
       fontWeight: 700,
-      letterSpacing: "-0.02em",
+      letterSpacing: "0.01em",
       color,
+      opacity: isMobile ? 0.55 : 0.85,
       transform: `rotate(${it.rot}deg)`,
       lineHeight: 1,
       userSelect: "none",
       whiteSpace: "nowrap"
     }
-  }, "peakorder")), LANDMARK_ITEMS.map((it, i) => /*#__PURE__*/React.createElement("div", {
+  }, "peakorder")), landmarkItems.map((it, i) => /*#__PURE__*/React.createElement("div", {
     key: `lm-${i}`,
     style: {
       position: "absolute",
@@ -771,7 +827,7 @@ function LetterBackdrop({
     }
   }, /*#__PURE__*/React.createElement(LandmarkIcon, {
     kind: it.kind,
-    size: it.size,
+    size: it.size * landmarkScale,
     rot: it.rot
   }))));
 }
@@ -4059,7 +4115,7 @@ function StartScreen({
         padding: "2px 6px",
         whiteSpace: "nowrap"
       }
-    }, "Sắp ra mắt"), /*#__PURE__*/React.createElement(it.icon, {
+    }, "Sắp mở"), /*#__PURE__*/React.createElement(it.icon, {
       size: 18,
       color: !enabled ? "#B4AC9C" : active ? "#fff" : "#7D7568"
     }), /*#__PURE__*/React.createElement("span", {
@@ -8403,7 +8459,7 @@ function Costs({
       color: MUTED,
       marginBottom: 12
     }
-  }, "Tắt kênh nào thì nút đó vẫn hiện trên màn chào mừng nhưng có nhãn \"Sắp ra mắt\" và khách không bấm vào được."), /*#__PURE__*/React.createElement("div", {
+  }, "Tắt kênh nào thì nút đó vẫn hiện trên màn chào mừng nhưng có nhãn \"Sắp mở\" và khách không bấm vào được."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -8445,7 +8501,7 @@ function Costs({
     }, /*#__PURE__*/React.createElement(StatusDot, {
       isOpen: enabled,
       size: 8
-    }), ch.label, " · ", enabled ? "Đang bật" : "Sắp ra mắt");
+    }), ch.label, " · ", enabled ? "Đang bật" : "Sắp mở");
   })), /*#__PURE__*/React.createElement("div", {
     className: "disp",
     style: {
