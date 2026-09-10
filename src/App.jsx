@@ -604,41 +604,50 @@ function EmptyBowlArt({
 // GÓC/CẠNH màn hình, tránh dải giữa (nơi logo/nút bấm/nội dung chính luôn
 // nằm) để không bị nút che mất. Không bắt sự kiện chuột.
 const MOTTO_WORDS = ["Độc lập", "Tự do", "Hạnh phúc"];
-const MOTTO_POS = [
-  { top: "-8%", left: "-16%", size: 62, rot: -14 },
-  { top: "-6%", left: "76%", size: 54, rot: 11 },
-  { top: "24%", left: "-20%", size: 68, rot: -10 },
-  { top: "20%", left: "84%", size: 58, rot: 9 },
-  { top: "55%", left: "-18%", size: 64, rot: -8 },
-  { top: "52%", left: "82%", size: 60, rot: 12 },
-  { top: "84%", left: "-14%", size: 58, rot: -9 },
-  { top: "86%", left: "74%", size: 62, rot: 7 }
+// 1 "ô" lặp lại: 2 chữ (trái/phải) trong mỗi khoảng GAP px chiều cao. Đo
+// chiều cao thật của trang (kể cả phần cuộn xuống) rồi lặp ô này đều đặn
+// suốt trang — trang dài hay ngắn thì khoảng cách giữa các chữ vẫn như nhau.
+const MOTTO_TILE = [
+  { dy: 0, left: "-16%", size: 62, rot: -12 },
+  { dy: 75, left: "78%", size: 52, rot: 10 }
 ];
-const MOTTO_ITEMS = MOTTO_POS.map((p, i) => ({
-  ...p,
-  text: MOTTO_WORDS[i % MOTTO_WORDS.length]
-}));
-// Bố cục riêng cho mobile: dồn về mép trên/dưới và 2 rìa ngoài cùng, chừa
-// hẳn dải giữa màn hình (nơi logo + 3 nút Đặt hàng/Gọi món/Đặt bàn nằm)
-// trống hoàn toàn để chữ nền không bị nút che khuất.
-const MOTTO_POS_MOBILE = [
-  { top: "-3%", left: "-22%", size: 24, rot: -9 },
-  { top: "1%", left: "62%", size: 20, rot: 8 },
-  { top: "38%", left: "-30%", size: 20, rot: -7 },
-  { top: "40%", left: "98%", size: 22, rot: 9 },
-  { top: "90%", left: "-18%", size: 22, rot: -8 },
-  { top: "93%", left: "58%", size: 20, rot: 6 }
+const MOTTO_TILE_MOBILE = [
+  { dy: 0, left: "-22%", size: 25, rot: -9 },
+  { dy: 55, left: "62%", size: 21, rot: 8 }
 ];
-const MOTTO_ITEMS_MOBILE = MOTTO_POS_MOBILE.map((p, i) => ({
-  ...p,
-  text: MOTTO_WORDS[i % MOTTO_WORDS.length]
-}));
 function LetterBackdrop({
   color = "#EAB300"
 }) {
   const isMobile = useIsMobile();
-  const mottoItems = isMobile ? MOTTO_ITEMS_MOBILE : MOTTO_ITEMS;
+  const backdropRef = useRef(null);
+  const [contentH, setContentH] = useState(0);
+  useEffect(() => {
+    const el = backdropRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const update = () => setContentH(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const gap = isMobile ? 110 : 150;
+  const tile = isMobile ? MOTTO_TILE_MOBILE : MOTTO_TILE;
+  const totalH = contentH || (typeof window !== "undefined" ? window.innerHeight : 700);
+  const rows = Math.min(60, Math.max(1, Math.ceil(totalH / gap)));
+  const mottoItems = [];
+  for (let r = 0; r < rows; r++) {
+    tile.forEach((t, ti) => {
+      mottoItems.push({
+        top: r * gap + t.dy,
+        left: t.left,
+        size: t.size,
+        rot: t.rot,
+        text: MOTTO_WORDS[(r * tile.length + ti) % MOTTO_WORDS.length]
+      });
+    });
+  }
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    ref: backdropRef,
     "aria-hidden": "true",
     style: {
       position: "absolute",
@@ -659,7 +668,7 @@ function LetterBackdrop({
       letterSpacing: "0.06em",
       textTransform: "uppercase",
       color: "transparent",
-      WebkitTextStroke: `${isMobile ? 1.3 : 1.6}px rgba(54,30,20,0.5)`,
+      WebkitTextStroke: `${isMobile ? 1.3 : 1.7}px rgba(255,255,255,0.62)`,
       opacity: 1,
       transform: `rotate(${it.rot}deg)`,
       lineHeight: 1,
