@@ -659,8 +659,8 @@ function LetterBackdrop({
       letterSpacing: "0.06em",
       textTransform: "uppercase",
       color: "transparent",
-      WebkitTextStroke: "1px #fff",
-      opacity: 0.4,
+      WebkitTextStroke: `${isMobile ? 1.3 : 1.6}px rgba(54,30,20,0.5)`,
+      opacity: 1,
       transform: `rotate(${it.rot}deg)`,
       lineHeight: 1,
       userSelect: "none",
@@ -674,10 +674,10 @@ function LetterBackdrop({
       left: "50%",
       transform: "translateX(-50%)",
       fontSize: isMobile ? 11 : 12.5,
-      fontWeight: 600,
+      fontWeight: 700,
       letterSpacing: "0.02em",
-      color,
-      opacity: 0.75,
+      color: "#361E14",
+      opacity: 0.55,
       textDecoration: "none",
       whiteSpace: "nowrap",
       zIndex: 1
@@ -3672,25 +3672,30 @@ function DarkShell({
       overflowY: "auto",
       overflowX: "hidden",
       background: "#FFC700",
-      color: INK,
+      color: INK
+    }
+  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      minHeight: "100%",
+      width: "100%",
+      boxSizing: "border-box",
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
       padding: "16px 20px 28px"
     }
-  }, /*#__PURE__*/React.createElement("style", null, `.disp{font-family:'Space Grotesk',sans-serif;} button{font-family:inherit;cursor:pointer;} input{font-family:inherit;}`), /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(LetterBackdrop, null), /*#__PURE__*/React.createElement("div", {
     style: {
       position: "relative",
       zIndex: 1,
       width: "100%",
-      height: "100%",
       display: "flex",
       flexDirection: "column",
-      justifyContent: "center",
       alignItems: "center"
     }
-  }, children), topRight && /*#__PURE__*/React.createElement("div", {
+  }, children)), topRight && /*#__PURE__*/React.createElement("div", {
     style: {
       position: "absolute",
       top: "calc(16px + env(safe-area-inset-top))",
