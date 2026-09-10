@@ -601,197 +601,48 @@ function EmptyBowlArt({
 }
 // Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
 // (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
-// Chữ "peakorder" đầy đủ, lặp lại rải rác ngẫu nhiên làm nền
+// Chữ "peakorder" đầy đủ, lặp lại rải rác ở các GÓC/CẠNH màn hình, tránh dải
+// giữa (nơi logo/nút bấm/nội dung chính luôn nằm) để không bị nút che mất.
 const WORD_BACKDROP_ITEMS = [
-  { top: "-5%", left: "-10%", size: 150, rot: -12 },
-  { top: "4%", left: "44%", size: 130, rot: 9 },
-  { top: "19%", left: "-8%", size: 190, rot: -16 },
-  { top: "33%", left: "40%", size: 145, rot: 7 },
-  { top: "46%", left: "-12%", size: 165, rot: -10 },
-  { top: "58%", left: "48%", size: 200, rot: 13 },
-  { top: "74%", left: "-10%", size: 150, rot: -8 },
-  { top: "87%", left: "38%", size: 165, rot: -6 }
+  { top: "-8%", left: "-16%", size: 150, rot: -14 },
+  { top: "-6%", left: "76%", size: 130, rot: 11 },
+  { top: "24%", left: "-20%", size: 170, rot: -10 },
+  { top: "20%", left: "84%", size: 140, rot: 9 },
+  { top: "55%", left: "-18%", size: 160, rot: -8 },
+  { top: "52%", left: "82%", size: 150, rot: 12 },
+  { top: "84%", left: "-14%", size: 145, rot: -9 },
+  { top: "86%", left: "74%", size: 155, rot: 7 }
 ];
-// Bố cục riêng cho mobile: ít chữ hơn, size nhỏ hơn, giãn cách theo chiều
-// dọc rộng rãi hơn để không bị chồng/dính chữ lên nhau như trên màn hẹp.
+// Bố cục riêng cho mobile: dồn về mép trên/dưới và 2 rìa ngoài cùng, chừa
+// hẳn dải giữa màn hình (nơi logo + 3 nút Đặt hàng/Gọi món/Đặt bàn nằm)
+// trống hoàn toàn để chữ nền không bị nút che khuất.
 const WORD_BACKDROP_ITEMS_MOBILE = [
-  { top: "2%", left: "-8%", size: 62, rot: -8 },
-  { top: "16%", left: "48%", size: 54, rot: 8 },
-  { top: "32%", left: "-10%", size: 58, rot: -6 },
-  { top: "48%", left: "46%", size: 60, rot: 7 },
-  { top: "64%", left: "-8%", size: 56, rot: -8 },
-  { top: "80%", left: "44%", size: 58, rot: 6 }
+  { top: "-3%", left: "-22%", size: 58, rot: -9 },
+  { top: "1%", left: "62%", size: 52, rot: 8 },
+  { top: "38%", left: "-30%", size: 50, rot: -7 },
+  { top: "40%", left: "98%", size: 50, rot: 9 },
+  { top: "90%", left: "-18%", size: 56, rot: -8 },
+  { top: "93%", left: "58%", size: 54, rot: 6 }
 ];
-// 3 địa danh Việt Nam, phong cách khắc nét cổ điển (etching) — nét chính đậm
-// + nét hatch mảnh tạo bóng đổ, trông có chiều sâu hơn nét vẽ phẳng
-const LANDMARK_ITEMS = [
-  { top: "12%", left: "68%", size: 230, rot: -6, kind: "benthanh" },
-  { top: "58%", left: "2%", size: 210, rot: 5, kind: "quoctugiam" },
-  { top: "82%", left: "54%", size: 220, rot: -4, kind: "hue" }
+// Quốc hiệu Việt Nam "Độc lập - Tự do - Hạnh phúc", vẽ dạng chữ nét viền
+// trắng (giống phong cách "peakorder" ở trên) — thay cho nét vẽ địa danh
+// cũ vì khó nhận ra hình. Đặt ở các góc/cạnh, tránh dải giữa có nút bấm.
+const MOTTO_ITEMS = [
+  { top: "10%", left: "66%", size: 30, rot: -7, text: "Độc lập" },
+  { top: "60%", left: "-4%", size: 26, rot: 6, text: "Tự do" },
+  { top: "80%", left: "58%", size: 28, rot: -5, text: "Hạnh phúc" }
 ];
-// Vài nét hatch chéo mảnh, dùng lặp lại để tạo vùng đổ bóng kiểu khắc gỗ
-function hatchLines(x, y, w, h, gap = 4, angle = 38) {
-  const rad = angle * Math.PI / 180;
-  const dx = Math.cos(rad) * h / Math.tan(rad);
-  const lines = [];
-  for (let off = 0; off < w + h; off += gap) {
-    const x1 = x + off;
-    const y1 = y;
-    const x2 = x + off - h / Math.tan(rad);
-    const y2 = y + h;
-    lines.push(`M${Math.max(x, Math.min(x + w, x1)).toFixed(1)} ${y1} L${Math.max(x, Math.min(x + w, x2)).toFixed(1)} ${y2}`);
-  }
-  return lines.join(" ");
-}
-function LandmarkIcon({
-  kind,
-  size,
-  rot
-}) {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: "0 0 120 120",
-    fill: "none",
-    stroke: "#fff",
-    strokeWidth: 1.6,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    opacity: 0.4,
-    style: {
-      transform: `rotate(${rot}deg)`
-    }
-  };
-  const hatch = {
-    stroke: "#fff",
-    strokeWidth: 0.7,
-    strokeLinecap: "round",
-    opacity: 0.22
-  };
-  // Chợ Bến Thành — tháp đồng hồ mái vòm, 2 cánh phụ, mái ngói, họa tiết đồng hồ
-  if (kind === "benthanh") {
-    return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-      d: "M50 108h20V70h-20z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: hatchLines(50, 70, 20, 38, 3.4, 32),
-      ...hatch
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M44 70h32l-4-14H48z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M46.5 70v-4.5h27V70"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M52 56h16v-8H52z"
-    }), /*#__PURE__*/React.createElement("circle", {
-      cx: "60",
-      cy: "38",
-      r: "10"
-    }), /*#__PURE__*/React.createElement("circle", {
-      cx: "60",
-      cy: "38",
-      r: "6.4"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 34v4l3 2"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 30v1.4M60 45.6V47M50.4 38h1.4M68.2 38h1.4"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 32v-16"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M55 16h10l-5-7z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M6 108h108"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M10 108V86h34v22M76 108V86h34v22"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: hatchLines(76, 86, 34, 22, 3, 40),
-      ...hatch
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M10 86l17-10 17 10M76 86l17-10 17 10"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M16 108V94h6v14M40 108V94h6v14M82 108V94h6v14M106 108V94h6v14"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M18 108V80h20v28M82 108V80h20v28"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M24 98h8M92 98h8"
-    }));
-  }
-  // Quốc Tử Giám — Khuê Văn Các (gác 2 tầng, mái cong, 4 cột, hồ sen phía trước, lan can)
-  if (kind === "quoctugiam") {
-    return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-      d: "M14 112h92"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M18 112c6-3 12-3 18 0M84 112c6-3 12-3 18 0"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M30 108h60"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M34 108V64h4v44M46 108V64h4v44M70 108V64h4v44M82 108V64h4v44"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: hatchLines(50, 64, 20, 44, 3.4, 38),
-      ...hatch
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M38 78h6M38 90h6M76 78h6M76 90h6"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M34 60h52v-8H34z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M40 56v-4h40v4"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M26 52 Q60 38 94 52 L88 60 Q60 48 32 60 Z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: hatchLines(32, 52, 56, 8, 3, 150),
-      ...hatch
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M32 54 Q60 42 88 54"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M44 44h32v-14H44z"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M50 44V30M60 44V30M70 44V30"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M36 30 Q60 18 84 30 L80 36 Q60 26 40 36 Z"
-    }), /*#__PURE__*/React.createElement("circle", {
-      cx: "60",
-      cy: "37",
-      r: "5"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M60 14v6"
-    }));
-  }
-  // Kinh Thành Huế — Kỳ Đài (cột cờ nhiều tầng trên nền thành, lá cờ, tường thành có chấn song)
-  return /*#__PURE__*/React.createElement("svg", common, /*#__PURE__*/React.createElement("path", {
-    d: "M4 112h112"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M14 112V92h92v20"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: hatchLines(14, 92, 92, 20, 3.6, 40),
-    ...hatch
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M14 92l3-8h86l3 8"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M22 112V98M32 112V98M42 112V98M52 112V98M68 112V98M78 112V98M88 112V98M98 112V98"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M30 84V70h60v14"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M42 70V56h36v14"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M54 56V42h12v14"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M60 42V10"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M60 12h26l-8 7 8 7H60z"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: hatchLines(60, 12, 26, 14, 3, 145),
-    stroke: "#fff",
-    strokeWidth: 0.7,
-    opacity: 0.18
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M34 84h52M46 70h28"
-  }));
-}
+const MOTTO_ITEMS_MOBILE = [
+  { top: "12%", left: "58%", size: 18, rot: -6, text: "Độc lập" },
+  { top: "62%", left: "-6%", size: 16, rot: 6, text: "Tự do" },
+  { top: "78%", left: "56%", size: 17, rot: -5, text: "Hạnh phúc" }
+];
 function LetterBackdrop({
   color = "#EAB300"
 }) {
   const isMobile = useIsMobile();
   const wordItems = isMobile ? WORD_BACKDROP_ITEMS_MOBILE : WORD_BACKDROP_ITEMS;
-  const landmarkItems = isMobile ? LANDMARK_ITEMS.slice(0, 2) : LANDMARK_ITEMS;
-  const landmarkScale = isMobile ? 0.55 : 1;
+  const mottoItems = isMobile ? MOTTO_ITEMS_MOBILE : MOTTO_ITEMS;
   return /*#__PURE__*/React.createElement("div", {
     "aria-hidden": "true",
     style: {
@@ -818,18 +669,26 @@ function LetterBackdrop({
       userSelect: "none",
       whiteSpace: "nowrap"
     }
-  }, "peakorder")), landmarkItems.map((it, i) => /*#__PURE__*/React.createElement("div", {
-    key: `lm-${i}`,
+  }, "peakorder")), mottoItems.map((it, i) => /*#__PURE__*/React.createElement("span", {
+    key: `mo-${i}`,
+    className: "disp",
     style: {
       position: "absolute",
       top: it.top,
-      left: it.left
+      left: it.left,
+      fontSize: it.size,
+      fontWeight: 700,
+      letterSpacing: "0.06em",
+      textTransform: "uppercase",
+      color: "transparent",
+      WebkitTextStroke: "1px #fff",
+      opacity: 0.4,
+      transform: `rotate(${it.rot}deg)`,
+      lineHeight: 1,
+      userSelect: "none",
+      whiteSpace: "nowrap"
     }
-  }, /*#__PURE__*/React.createElement(LandmarkIcon, {
-    kind: it.kind,
-    size: it.size * landmarkScale,
-    rot: it.rot
-  }))));
+  }, it.text)));
 }
 function StampLogo({
   size = 56,
