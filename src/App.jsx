@@ -599,51 +599,46 @@ function EmptyBowlArt({
     opacity: 0.7
   }));
 }
-// Nền trang trí: rải rác chữ cái "PEAKORDER" cỡ lớn, đậm hơn nền 1 chút
-// (theo mẫu tham khảo). Đặt phía sau nội dung chính, không bắt sự kiện chuột.
-// Chữ "peakorder" đầy đủ, lặp lại rải rác ở các GÓC/CẠNH màn hình, tránh dải
-// giữa (nơi logo/nút bấm/nội dung chính luôn nằm) để không bị nút che mất.
-const WORD_BACKDROP_ITEMS = [
-  { top: "-8%", left: "-16%", size: 150, rot: -14 },
-  { top: "-6%", left: "76%", size: 130, rot: 11 },
-  { top: "24%", left: "-20%", size: 170, rot: -10 },
-  { top: "20%", left: "84%", size: 140, rot: 9 },
-  { top: "55%", left: "-18%", size: 160, rot: -8 },
-  { top: "52%", left: "82%", size: 150, rot: 12 },
-  { top: "84%", left: "-14%", size: 145, rot: -9 },
-  { top: "86%", left: "74%", size: 155, rot: 7 }
+// Nền trang trí: rải rác chữ Quốc hiệu Việt Nam "Độc lập - Tự do - Hạnh
+// phúc" cỡ lớn, dạng chữ nét viền trắng, đặt phía sau nội dung chính, ở các
+// GÓC/CẠNH màn hình, tránh dải giữa (nơi logo/nút bấm/nội dung chính luôn
+// nằm) để không bị nút che mất. Không bắt sự kiện chuột.
+const MOTTO_WORDS = ["Độc lập", "Tự do", "Hạnh phúc"];
+const MOTTO_POS = [
+  { top: "-8%", left: "-16%", size: 62, rot: -14 },
+  { top: "-6%", left: "76%", size: 54, rot: 11 },
+  { top: "24%", left: "-20%", size: 68, rot: -10 },
+  { top: "20%", left: "84%", size: 58, rot: 9 },
+  { top: "55%", left: "-18%", size: 64, rot: -8 },
+  { top: "52%", left: "82%", size: 60, rot: 12 },
+  { top: "84%", left: "-14%", size: 58, rot: -9 },
+  { top: "86%", left: "74%", size: 62, rot: 7 }
 ];
+const MOTTO_ITEMS = MOTTO_POS.map((p, i) => ({
+  ...p,
+  text: MOTTO_WORDS[i % MOTTO_WORDS.length]
+}));
 // Bố cục riêng cho mobile: dồn về mép trên/dưới và 2 rìa ngoài cùng, chừa
 // hẳn dải giữa màn hình (nơi logo + 3 nút Đặt hàng/Gọi món/Đặt bàn nằm)
 // trống hoàn toàn để chữ nền không bị nút che khuất.
-const WORD_BACKDROP_ITEMS_MOBILE = [
-  { top: "-3%", left: "-22%", size: 58, rot: -9 },
-  { top: "1%", left: "62%", size: 52, rot: 8 },
-  { top: "38%", left: "-30%", size: 50, rot: -7 },
-  { top: "40%", left: "98%", size: 50, rot: 9 },
-  { top: "90%", left: "-18%", size: 56, rot: -8 },
-  { top: "93%", left: "58%", size: 54, rot: 6 }
+const MOTTO_POS_MOBILE = [
+  { top: "-3%", left: "-22%", size: 24, rot: -9 },
+  { top: "1%", left: "62%", size: 20, rot: 8 },
+  { top: "38%", left: "-30%", size: 20, rot: -7 },
+  { top: "40%", left: "98%", size: 22, rot: 9 },
+  { top: "90%", left: "-18%", size: 22, rot: -8 },
+  { top: "93%", left: "58%", size: 20, rot: 6 }
 ];
-// Quốc hiệu Việt Nam "Độc lập - Tự do - Hạnh phúc", vẽ dạng chữ nét viền
-// trắng (giống phong cách "peakorder" ở trên) — thay cho nét vẽ địa danh
-// cũ vì khó nhận ra hình. Đặt ở các góc/cạnh, tránh dải giữa có nút bấm.
-const MOTTO_ITEMS = [
-  { top: "10%", left: "66%", size: 30, rot: -7, text: "Độc lập" },
-  { top: "60%", left: "-4%", size: 26, rot: 6, text: "Tự do" },
-  { top: "80%", left: "58%", size: 28, rot: -5, text: "Hạnh phúc" }
-];
-const MOTTO_ITEMS_MOBILE = [
-  { top: "12%", left: "58%", size: 18, rot: -6, text: "Độc lập" },
-  { top: "62%", left: "-6%", size: 16, rot: 6, text: "Tự do" },
-  { top: "78%", left: "56%", size: 17, rot: -5, text: "Hạnh phúc" }
-];
+const MOTTO_ITEMS_MOBILE = MOTTO_POS_MOBILE.map((p, i) => ({
+  ...p,
+  text: MOTTO_WORDS[i % MOTTO_WORDS.length]
+}));
 function LetterBackdrop({
   color = "#EAB300"
 }) {
   const isMobile = useIsMobile();
-  const wordItems = isMobile ? WORD_BACKDROP_ITEMS_MOBILE : WORD_BACKDROP_ITEMS;
   const mottoItems = isMobile ? MOTTO_ITEMS_MOBILE : MOTTO_ITEMS;
-  return /*#__PURE__*/React.createElement("div", {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     "aria-hidden": "true",
     style: {
       position: "absolute",
@@ -652,24 +647,7 @@ function LetterBackdrop({
       zIndex: 0,
       pointerEvents: "none"
     }
-  }, wordItems.map((it, i) => /*#__PURE__*/React.createElement("span", {
-    key: i,
-    className: "disp",
-    style: {
-      position: "absolute",
-      top: it.top,
-      left: it.left,
-      fontSize: it.size,
-      fontWeight: 700,
-      letterSpacing: "0.01em",
-      color,
-      opacity: isMobile ? 0.55 : 0.85,
-      transform: `rotate(${it.rot}deg)`,
-      lineHeight: 1,
-      userSelect: "none",
-      whiteSpace: "nowrap"
-    }
-  }, "peakorder")), mottoItems.map((it, i) => /*#__PURE__*/React.createElement("span", {
+  }, mottoItems.map((it, i) => /*#__PURE__*/React.createElement("span", {
     key: `mo-${i}`,
     className: "disp",
     style: {
@@ -688,7 +666,23 @@ function LetterBackdrop({
       userSelect: "none",
       whiteSpace: "nowrap"
     }
-  }, it.text)));
+  }, it.text))), /*#__PURE__*/React.createElement("a", {
+    href: "/?register=1",
+    style: {
+      position: "absolute",
+      bottom: isMobile ? 10 : 16,
+      left: "50%",
+      transform: "translateX(-50%)",
+      fontSize: isMobile ? 11 : 12.5,
+      fontWeight: 600,
+      letterSpacing: "0.02em",
+      color,
+      opacity: 0.75,
+      textDecoration: "none",
+      whiteSpace: "nowrap",
+      zIndex: 1
+    }
+  }, "PeakOrder App"));
 }
 function StampLogo({
   size = 56,
@@ -2192,7 +2186,8 @@ function ShopGate({
   onActivate,
   isMobile
 }) {
-  const [screen, setScreen] = useState("start"); // start | create | find
+  const wantsRegister = useMemo(() => new URLSearchParams(window.location.search).get("register") === "1", []);
+  const [screen, setScreen] = useState(wantsRegister ? "create" : "start"); // start | create | find
   const [name, setName] = useState("");
   const [repName, setRepName] = useState("");
   const [cccd, setCccd] = useState("");
