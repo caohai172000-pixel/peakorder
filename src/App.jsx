@@ -679,7 +679,7 @@ function LetterBackdrop({
     href: "/?register=1",
     style: {
       position: "absolute",
-      bottom: isMobile ? 10 : 16,
+      bottom: isMobile ? 26 : 32,
       left: "50%",
       transform: "translateX(-50%)",
       fontSize: isMobile ? 11 : 12.5,
