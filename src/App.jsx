@@ -17,6 +17,13 @@ function buildOrderLink(branch, table, mode = "dine-in") {
 function loadImg(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    // Ảnh logo quán được tải từ Supabase Storage (khác domain với app), nên
+    // cần khai báo crossOrigin TRƯỚC khi gán src — nếu không, canvas sẽ bị
+    // trình duyệt coi là "nhiễm bẩn" (tainted) sau khi vẽ ảnh này vào, và
+    // mọi lệnh canvas.toDataURL() phía sau sẽ âm thầm báo lỗi, khiến ảnh QR
+    // không bao giờ hiển thị được (chỉ xảy ra với logo thật, không xảy ra
+    // với icon mặc định vì đó là data URI, không phải ảnh tải qua mạng).
+    if (src && src.startsWith("http")) img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = src;
@@ -207,7 +214,23 @@ function QrCardPreview({
       showLogo,
       logoUrl
     }).then(canvas => {
-      if (!cancelled) setDataUrl(canvas.toDataURL("image/png"));
+      if (cancelled) return;
+      try {
+        setDataUrl(canvas.toDataURL("image/png"));
+      } catch (e) {
+        // Phòng khi canvas vẫn bị "nhiễm bẩn" vì lý do khác — thử lại 1 lần
+        // không gắn logo, để ít nhất mã QR vẫn hiển thị được cho khách.
+        console.error("QR canvas lỗi, thử lại không logo", e);
+        drawQrCard({
+          url,
+          topText,
+          bottomText,
+          table,
+          showLogo: false
+        }).then(c2 => {
+          if (!cancelled) setDataUrl(c2.toDataURL("image/png"));
+        }).catch(() => {});
+      }
     });
     return () => {
       cancelled = true;
@@ -2646,14 +2669,7 @@ function SalesChannels({
     setTimeout(() => setCopied(false), 2000);
   };
   const downloadCard = () => {
-    drawQrCard({
-      url,
-      topText,
-      bottomText,
-      table: channel === "dine-in" ? table.trim() : "",
-      showLogo,
-      logoUrl: shopLogoUrl
-    }).then(canvas => {
+    const finish = canvas => {
       const dataUrl = canvas.toDataURL("image/png");
       const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
       if (isIOS) {
@@ -2669,6 +2685,27 @@ function SalesChannels({
       a.href = dataUrl;
       a.download = `qr-${channel}-${branch || "quan"}${table.trim() ? "-ban-" + table.trim() : ""}.png`;
       a.click();
+    };
+    drawQrCard({
+      url,
+      topText,
+      bottomText,
+      table: channel === "dine-in" ? table.trim() : "",
+      showLogo,
+      logoUrl: shopLogoUrl
+    }).then(canvas => {
+      try {
+        finish(canvas);
+      } catch (e) {
+        console.error("QR canvas lỗi, thử lại không logo", e);
+        drawQrCard({
+          url,
+          topText,
+          bottomText,
+          table: channel === "dine-in" ? table.trim() : "",
+          showLogo: false
+        }).then(finish).catch(() => alert("Không tải được ảnh QR, thử lại sau."));
+      }
     });
   };
   const cardStyle = active => ({
