@@ -2643,7 +2643,10 @@ function SalesChannels({
   useEffect(() => {
     setBottomText(current.defaultBottom);
   }, [channel]);
-  const url = channel === "reserve" ? `${window.location.origin}${window.location.pathname}?mode=reserve` + (branch ? `&branch=${encodeURIComponent(branch)}` : "") : buildOrderLink(branch, channel === "dine-in" ? table.trim() : "", channel);
+  // Mã QR "Đặt hàng" cố tình KHÔNG kèm ?mode=order — dẫn thẳng về trang
+  // chung của quán (3 nút Đặt hàng/Gọi món/Đặt bàn) để khách tự chọn, thay
+  // vì nhảy thẳng vào màn đặt hàng luôn.
+  const url = channel === "reserve" ? `${window.location.origin}${window.location.pathname}?mode=reserve` + (branch ? `&branch=${encodeURIComponent(branch)}` : "") : channel === "order" ? `${window.location.origin}${window.location.pathname}` : buildOrderLink(branch, channel === "dine-in" ? table.trim() : "", channel);
   const copyLink = async () => {
     let ok = false;
     try {
@@ -2821,7 +2824,7 @@ function SalesChannels({
       display: "grid",
       gap: 8
     }
-  }, activeBranches.length > 1 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, activeBranches.length > 1 && channel !== "order" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: MUTED,
